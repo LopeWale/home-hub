@@ -1,0 +1,15 @@
+{
+  "module": "MMM-GuestNet",
+  "title": "Guest Wi-Fi (QR popup)",
+  "description": "Tapping the network icon at the top right of the fridge shows a QR code that joins this network. The password is shown on the fridge by design, so it is not stored as a secret, only masked in this form. Leave SSID empty to use GUEST_WIFI_SSID and GUEST_WIFI_PASSWORD from config.env. Any characters are fine; they are escaped for the QR code.",
+  "config": {
+    "type": "object",
+    "properties": {
+      "ssid": { "title": "Guest network name (SSID)", "type": "string", "maxLength": 32 },
+      "password": { "title": "Password", "type": "string", "maxLength": 63, "x-widget": "password" },
+      "security": { "title": "Security", "type": "string", "enum": ["WPA", "WEP", "nopass"] },
+      "hidden": { "title": "Hidden network", "type": "boolean" },
+      "showPassword": { "title": "Show the password under the QR code", "type": "boolean" }
+    }
+  }
+}

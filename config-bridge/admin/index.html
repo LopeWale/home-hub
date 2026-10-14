@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Fridge Mirror Admin</title>
+    <link rel="stylesheet" href="/admin/style.css" />
+    <script src="/admin/app.js" defer></script>
+  </head>
+  <body>
+    <header class="top">
+      <h1>Fridge Mirror Admin</h1>
+      <span id="mirror-state" class="pill">checking</span>
+      <button id="logout" type="button" class="link hidden">Forget token</button>
+    </header>
+
+    <section id="login" class="card hidden">
+      <h2>Token</h2>
+      <p>Paste the bridge token from <code>~/.config/mm-configbridge/bridge.env</code> on the Pi.</p>
+      <form id="login-form">
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="BRIDGE_TOKEN" required />
+        <label class="check"><input id="remember" type="checkbox" checked /> Remember on this device</label>
+        <button type="submit">Unlock</button>
+      </form>
+      <p id="login-error" class="error"></p>
+    </section>
+
+    <main id="sections"></main>
+
+    <footer id="savebar" class="savebar hidden">
+      <div class="savebar-status">
+        <span id="save-status">No changes</span>
+        <span id="last-saved" class="muted"></span>
+      </div>
+      <div class="savebar-actions">
+        <button id="discard" type="button" class="secondary">Discard</button>
+        <button id="save" type="button">Save and reload mirror</button>
+      </div>
+    </footer>
+  </body>
+</html>

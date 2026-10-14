@@ -1,0 +1,59 @@
+diff --git a/MMM-MyScoreboard.js b/MMM-MyScoreboard.js
+index 03786a3..2de07be 100644
+--- a/MMM-MyScoreboard.js
++++ b/MMM-MyScoreboard.js
+@@ -439,6 +439,13 @@ Module.register('MMM-MyScoreboard', {
+ 
+     var boxScore = document.createElement('div')
+     boxScore.classList.add('box-score', league.replaceAll(' ', ''))
++    // [mm-fridge patch] game id for MMM-GameDetails (tap a game for its details)
++    if (gameObj.gameId && gameObj.espnPath) {
++      boxScore.dataset.gameId = String(gameObj.gameId)
++      boxScore.dataset.espnPath = gameObj.espnPath
++      boxScore.dataset.league = league
++      boxScore.classList.add('has-details')
++    }
+     boxScore.classList.add(viewStyle)
+     if (gameObj.gameMode == this.gameModes.IN_PROGRESS) {
+       boxScore.classList.add('in-progress')
+@@ -921,7 +928,15 @@ Module.register('MMM-MyScoreboard', {
+           upcomingSeparator.innerHTML = '<span>' + sport + ' - Upcoming</span>'
+           wrapper.appendChild(upcomingSeparator)
+         }
+-        upcoming.games.forEach(function (game, gidx) {
++        // [mm-fridge patch] a game between two followed teams is listed once per
++        // team upstream; show it once
++        var seenUpcoming = new Set()
++        upcoming.games.filter(function (game) {
++          var key = game.gameId || (game.hTeam + '|' + game.vTeam + '|' + game.gameDate)
++          if (seenUpcoming.has(key)) return false
++          seenUpcoming.add(key)
++          return true
++        }).forEach(function (game, gidx) {
+           var boxScore = self.boxScoreFactory(upcoming.league, game, sport)
+           boxScore.classList.add(gidx % 2 == 0 ? 'odd' : 'even')
+           wrapper.appendChild(boxScore)
+diff --git a/providers/ESPN.js b/providers/ESPN.js
+index eb647c5..cda306a 100644
+--- a/providers/ESPN.js
++++ b/providers/ESPN.js
+@@ -1104,6 +1104,9 @@ module.exports = {
+           vTeamLogoUrl: vTeamData.team.logo ? vTeamData.team.logo : '',
+           playoffStatus: playoffStatus,
+           baseballSituation: baseballSituation,
++          // [mm-fridge patch] lets MMM-GameDetails open ESPN's game summary
++          gameId: game.id,
++          espnPath: leaguePath,
+         })
+       }
+     })
+@@ -1311,6 +1314,9 @@ module.exports = {
+       playoffStatus: '',
+       baseballSituation: null,
+       gameDate: comp.date,
++      // [mm-fridge patch] lets MMM-GameDetails open ESPN's game summary
++      gameId: game.id,
++      espnPath: this.getLeaguePath(payload.league),
+     }
+   },
+ 

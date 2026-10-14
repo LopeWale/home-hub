@@ -1,0 +1,22 @@
+{
+  "module": "MMM-TodoList",
+  "title": "Todo list tabs",
+  "description": "The tabs of the todo list on the home page. To rename a tab (for example Family to a name), change it in place: its tasks move to the new name. A removed tab keeps its tasks on the fridge, and adding the same name again brings them back. Rename and add or remove in separate saves.",
+  "config": {
+    "type": "object",
+    "properties": {
+      "members": {
+        "title": "Tabs",
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20,
+          "pattern": "^[^<>\\u0000-\\u001f]+$"
+        }
+      }
+    }
+  }
+}

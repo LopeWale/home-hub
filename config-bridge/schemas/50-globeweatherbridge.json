@@ -1,0 +1,106 @@
+{
+  "module": "MMM-GlobeWeatherBridge",
+  "title": "Globe, weather and news",
+  "description": "Home pin, admin managed pins, and the weather panel of the globe page. Home is taken from, in order: latitude and longitude here, the address here (looked up once and cached), or, if both are empty and automatic location is on, found automatically from nearby Wi-Fi (needs the Geolocation API on the Google key) or else your internet connection (city level). Weather and air quality come from Google (Weather API and Air Quality API on SECRET_GOOGLE_MAPS_KEY, kept on the Pi). Pins added from the touchscreen are kept separately on the mirror and can be removed there. The 3D Earth's browser key (GOOGLE_MAPS_BROWSER_KEY) is set in config.env only.",
+  "config": {
+    "type": "object",
+    "properties": {
+      "home": {
+        "title": "Home",
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "address": {
+            "title": "Address",
+            "type": "string",
+            "maxLength": 200
+          },
+          "lat": {
+            "title": "Latitude",
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lng": {
+            "title": "Longitude",
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        }
+      },
+      "autoLocate": {
+        "title": "Find home automatically when no address or coordinates are set",
+        "type": "boolean"
+      },
+      "units": {
+        "title": "Units",
+        "type": "string",
+        "enum": [
+          "imperial",
+          "metric"
+        ]
+      },
+      "weatherRefreshMin": {
+        "title": "Weather refresh (minutes). Each refresh is 3 Weather API calls; 30 or more stays inside Google's free 10,000 a month",
+        "type": "integer",
+        "minimum": 15,
+        "maximum": 240
+      },
+      "pins": {
+        "title": "Pins",
+        "type": "array",
+        "maxItems": 40,
+        "items": {
+          "type": "object",
+          "required": [
+            "label"
+          ],
+          "properties": {
+            "label": {
+              "title": "Label",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "address": {
+              "title": "Address",
+              "type": "string",
+              "maxLength": 200
+            },
+            "lat": {
+              "title": "Latitude",
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "lng": {
+              "title": "Longitude",
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            }
+          }
+        }
+      },
+      "autoRotate": {
+        "title": "Slowly rotate the simple globe (Google 3D Earth does not rotate)",
+        "type": "boolean"
+      },
+      "maxFps": {
+        "title": "Simple globe: max frames per second",
+        "type": "integer",
+        "minimum": 5,
+        "maximum": 60
+      }
+    }
+  }
+}

@@ -1,0 +1,263 @@
+diff --git a/MMM-TodoList.js b/MMM-TodoList.js
+index 41bc0e8..a74cbd0 100644
+--- a/MMM-TodoList.js
++++ b/MMM-TodoList.js
+@@ -11,7 +11,9 @@ Module.register("MMM-TodoList", {
+     this.pendingEdit = null;
+     this.pendingDelete = null;
+     this.showCompleted = true;
+-    this.sendSocketNotification("GET_TASKS", this.active);
++    // [mm-fridge patch] tell the helper the tab names first: a tab renamed in
++    // place (admin page) carries its tasks over before anything is loaded
++    this.sendSocketNotification("SET_MEMBERS", this.config.members);
+   },
+ 
+   getStyles() {
+@@ -59,7 +61,8 @@ Module.register("MMM-TodoList", {
+     const list = document.createElement("div");
+     list.className = "todo-list";
+ 
+-    const sorted = (this.tasks[this.active] || []).slice().sort((a, b) => {
++    // [mm-fridge patch] keep each task's storage index; the sort below changes order
++    const sorted = (this.tasks[this.active] || []).map((t, idx) => Object.assign({}, t, { idx })).sort((a, b) => {
+       if (a.done === b.done) return 0;
+       return a.done ? 1 : -1;
+     });
+@@ -80,7 +83,7 @@ Module.register("MMM-TodoList", {
+       cb.onchange = () => {
+         this.sendSocketNotification("TOGGLE_TASK", {
+           member: this.active,
+-          index: i
++          index: t.idx
+         });
+       };
+       item.appendChild(cb);
+@@ -93,7 +96,7 @@ Module.register("MMM-TodoList", {
+       edit.className = "todo-edit-btn";
+       edit.innerText = "✎";
+       edit.onclick = () => {
+-        this.pendingEdit = { index: i, text: t.text };
++        this.pendingEdit = { index: t.idx, text: t.text };
+         this.showConfirm("Edit this task?", "edit");
+       };
+       item.appendChild(edit);
+@@ -102,7 +105,7 @@ Module.register("MMM-TodoList", {
+       del.className = "todo-del-btn";
+       del.innerText = "🗙";
+       del.onclick = () => {
+-        this.pendingDelete = { index: i };
++        this.pendingDelete = { index: t.idx };
+         this.showConfirm("Delete this task?", "delete");
+       };
+       item.appendChild(del);
+@@ -132,35 +135,37 @@ Module.register("MMM-TodoList", {
+   },
+ 
+   socketNotificationReceived(n, payload) {
+-    if (n === "TASKS_DATA") {
++    if (n === "MEMBERS_READY") {
++      this.sendSocketNotification("GET_TASKS", this.active);
++    } else if (n === "TASKS_DATA") {
+       this.tasks[payload.member] = payload.tasks;
+       this.newTaskPending = false;
+       this.updateDom(300);
++    } else if (n === "TASKS_UPDATED" && payload === this.active) {
++      // [mm-fridge patch] helper finished writing tasks.json, now re-read it
++      this.sendSocketNotification("GET_TASKS", this.active);
+     }
+   },
+ 
+   notificationReceived(n, p) {
+     if (n === "KEYBOARD_INPUT") {
++      // [mm-fridge patch] ignore empty submissions
++      if (!p || typeof p.message !== "string" || p.message.trim() === "") return;
+       if (p.key === "TODOTASK") {
+         this.newTaskPending = true;
+         this.sendSocketNotification("ADD_TASK", {
+           member: this.active,
+-          text: p.message
++          text: p.message.trim()
+         });
+-
+-        setTimeout(() => {
+-          this.sendSocketNotification("GET_TASKS", this.active);
+-        }, 200);
+       }
+ 
+       else if (p.key === "EDITTASK" && this.pendingEdit) {
+         this.sendSocketNotification("EDIT_TASK", {
+           member: this.active,
+           index: this.pendingEdit.index,
+-          text: p.message
++          text: p.message.trim()
+         });
+         this.pendingEdit = null;
+-        this.sendSocketNotification("GET_TASKS", this.active);
+       }
+     }
+   },
+@@ -192,6 +197,7 @@ Module.register("MMM-TodoList", {
+         this.sendNotification("KEYBOARD", {
+           key: "EDITTASK",
+           style: "default",
++          value: this.pendingEdit.text,
+           data: { text: this.pendingEdit.text }
+         });
+       }
+@@ -202,7 +208,6 @@ Module.register("MMM-TodoList", {
+           index: this.pendingDelete.index
+         });
+         this.pendingDelete = null;
+-        this.sendSocketNotification("GET_TASKS", this.active);
+       }
+ 
+       this.confirmModal = null;
+diff --git a/node_helper.js b/node_helper.js
+index bbfc7fa..6ad853c 100644
+--- a/node_helper.js
++++ b/node_helper.js
+@@ -2,6 +2,9 @@ const NodeHelper = require("node_helper");
+ const { spawn } = require("child_process");
+ const path = require("path");
+ 
++// [mm-fridge patch] tab renames, see tabs.js
++const { applyRenames } = require("./tabs");
++
+ module.exports = NodeHelper.create({
+   start() {
+     console.log("MMM-TodoList helper started");
+@@ -10,14 +13,26 @@ module.exports = NodeHelper.create({
+   socketNotificationReceived(notification, payload) {
+     const script = path.join(__dirname, "todo_handler.py");
+ 
+-    if (notification === "GET_TASKS") {
++    if (notification === "SET_MEMBERS") {
++      if (Array.isArray(payload) && payload.every((m) => typeof m === "string")) applyRenames(__dirname, payload);
++      this.sendSocketNotification("MEMBERS_READY", true);
++
++    } else if (notification === "GET_TASKS") {
+       let py = spawn("python3", [script, "get", payload]);
+       let out = "";
+       py.stdout.on("data", d => out += d);
++      py.on("error", (err) => console.error("MMM-TodoList: python3 failed: " + err.message));
+       py.on("close", () => {
++        // [mm-fridge patch] a bad tasks.json must not crash the helper
++        let tasks = [];
++        try {
++          tasks = JSON.parse(out || "[]");
++        } catch (err) {
++          console.error("MMM-TodoList: could not parse tasks: " + err.message);
++        }
+         this.sendSocketNotification("TASKS_DATA", {
+           member: payload,
+-          tasks: JSON.parse(out || "[]")
++          tasks
+         });
+       });
+ 
+@@ -32,7 +47,8 @@ module.exports = NodeHelper.create({
+       let { member, index } = payload;
+       let py = spawn("python3", [script, "toggle", member, index]);
+       py.on("close", () => {
+-        // No reload needed on checkbox toggle anymore
++        // [mm-fridge patch] refresh so sort order and Hide Completed stay correct
++        this.sendSocketNotification("TASKS_UPDATED", member);
+       });
+ 
+     } else if (notification === "EDIT_TASK") {
+diff --git a/tabs.js b/tabs.js
+new file mode 100644
+index 0000000..ffb1bb6
+--- /dev/null
++++ b/tabs.js
+@@ -0,0 +1,56 @@
++// [mm-fridge patch] new file
++"use strict";
++
++const fs = require("fs");
++const path = require("path");
++
++// [mm-fridge patch] Tabs are renamed from the admin page. Tasks are stored per
++// tab name, so a rename would hide them. The last tab list is kept in
++// members.json; a name that changed in the same position (same number of
++// tabs) moves its tasks to the new name. Removed tabs keep their tasks in
++// tasks.json, so re-adding the same name brings them back.
++function renamesBetween(previous, current) {
++  if (!Array.isArray(previous) || !Array.isArray(current) || previous.length !== current.length) return [];
++  const out = [];
++  previous.forEach((oldName, i) => {
++    const newName = current[i];
++    if (oldName !== newName && !current.includes(oldName) && !previous.includes(newName)) out.push([oldName, newName]);
++  });
++  return out;
++}
++
++function applyRenames(dir, members) {
++  const membersFile = path.join(dir, "members.json");
++  const tasksFile = path.join(dir, "tasks.json");
++  let previous = null;
++  try {
++    previous = JSON.parse(fs.readFileSync(membersFile, "utf-8"));
++  } catch {
++    // first start with this patch: nothing to compare
++  }
++  const renames = renamesBetween(previous, members);
++  if (renames.length) {
++    try {
++      const tasks = JSON.parse(fs.readFileSync(tasksFile, "utf-8"));
++      for (const [oldName, newName] of renames) {
++        if (Array.isArray(tasks[oldName]) && !tasks[newName]) {
++          tasks[newName] = tasks[oldName];
++          delete tasks[oldName];
++          console.log("MMM-TodoList: tab renamed '" + oldName + "' -> '" + newName + "', tasks moved");
++        }
++      }
++      fs.writeFileSync(tasksFile + ".tmp", JSON.stringify(tasks, null, 2));
++      fs.renameSync(tasksFile + ".tmp", tasksFile);
++    } catch (err) {
++      if (err.code !== "ENOENT") console.error("MMM-TodoList: rename failed: " + err.message);
++    }
++  }
++  try {
++    fs.writeFileSync(membersFile + ".tmp", JSON.stringify(members));
++    fs.renameSync(membersFile + ".tmp", membersFile);
++  } catch (err) {
++    console.error("MMM-TodoList: could not save members.json: " + err.message);
++  }
++}
++
++module.exports = { renamesBetween, applyRenames };
+diff --git a/todo_handler.py b/todo_handler.py
+index 9471e61..24b8da4 100644
+--- a/todo_handler.py
++++ b/todo_handler.py
+@@ -6,12 +6,26 @@ F = os.path.join(os.path.dirname(__file__), "tasks.json")
+ def load():
+     if not os.path.exists(F):
+         return {}
+-    with open(F) as f:
+-        return json.load(f)
++    try:
++        with open(F) as f:
++            data = json.load(f)
++        return data if isinstance(data, dict) else {}
++    except (ValueError, OSError):
++        # [mm-fridge patch] keep the broken file for inspection, start fresh
++        try:
++            os.replace(F, F + ".corrupt")
++        except OSError:
++            pass
++        return {}
+ 
+ def save(d):
+-    with open(F, "w") as f:
++    # [mm-fridge patch] atomic write: temp file + fsync + rename
++    tmp = F + ".tmp"
++    with open(tmp, "w") as f:
+         json.dump(d, f, indent=2)
++        f.flush()
++        os.fsync(f.fileno())
++    os.replace(tmp, F)
+ 
+ data = load()
+ cmd = sys.argv[1]

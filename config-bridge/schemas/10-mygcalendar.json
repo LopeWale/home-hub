@@ -1,0 +1,94 @@
+{
+  "module": "MMM-MyGCalendar",
+  "title": "Calendar feeds",
+  "description": "iCal feeds shown on the home page. Feed URLs are stored as secrets in config.env and never sent to the mirror's browser.",
+  "config": {
+    "type": "object",
+    "properties": {
+      "calendars": {
+        "title": "Feeds",
+        "type": "array",
+        "maxItems": 20,
+        "items": {
+          "type": "object",
+          "required": [
+            "name",
+            "url",
+            "color"
+          ],
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "url": {
+              "title": "iCal URL",
+              "type": "string",
+              "format": "ical-url",
+              "maxLength": 2000,
+              "x-secret": true,
+              "x-widget": "secret-url",
+              "x-test": "calendar"
+            },
+            "color": {
+              "title": "Color",
+              "type": "string",
+              "format": "hexcolor",
+              "x-widget": "color",
+              "default": "#4285F4"
+            }
+          }
+        }
+      },
+      "colorRules": {
+        "title": "Color rules (first match wins)",
+        "type": "array",
+        "maxItems": 30,
+        "items": {
+          "type": "object",
+          "required": [
+            "keyword",
+            "color"
+          ],
+          "properties": {
+            "keyword": {
+              "title": "Keyword (case insensitive regex)",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "format": "regex"
+            },
+            "color": {
+              "title": "Color",
+              "type": "string",
+              "format": "hexcolor",
+              "x-widget": "color",
+              "default": "#E67C73"
+            }
+          }
+        }
+      },
+      "defaultView": {
+        "title": "Calendar view the fridge returns to after 2 idle minutes",
+        "type": "string",
+        "enum": ["month", "week", "day"]
+      },
+      "weekStartsOnMonday": {
+        "title": "Week starts on Monday",
+        "type": "boolean"
+      },
+      "showHeader": {
+        "title": "Show the header (month name, Today, Month / Week / Day)",
+        "type": "boolean"
+      },
+      "updateInterval": {
+        "title": "Refresh interval (ms)",
+        "type": "integer",
+        "minimum": 60000,
+        "maximum": 86400000
+      }
+    }
+  }
+}

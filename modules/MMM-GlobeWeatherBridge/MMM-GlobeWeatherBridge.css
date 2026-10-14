@@ -1,0 +1,569 @@
+/* Globe page. Paper panel on the right, Earth on the left.
+ * Colors and fonts come from the theme tokens in config/custom.css. */
+
+.gwb-root {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  gap: 18px;
+  color: var(--ink, #1f1d1a);
+  font-family: var(--font-book, Georgia, serif);
+  text-align: left;
+}
+
+.gwb-root button {
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+/* ── Earth stage ── */
+
+.gwb-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #05070a;
+}
+
+.gwb-earth,
+.gwb-map3d {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gwb-toolbar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+}
+
+.gwb-btn {
+  min-height: 52px;
+  padding: 0 20px;
+  border: 1px solid var(--rule-strong, #b9ae99);
+  border-radius: 26px;
+  background: var(--paper-raised, #fbf8f1);
+  color: var(--ink, #1f1d1a);
+  font-size: 19px;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 25%);
+}
+
+.gwb-btn:active {
+  background: var(--paper-shade-strong, #e8e0d0);
+}
+
+.gwb-btn-small {
+  min-height: 46px;
+  font-size: 17px;
+  box-shadow: none;
+}
+
+.gwb-danger {
+  border-color: var(--alert, #a3271f);
+  color: var(--alert, #a3271f);
+}
+
+.gwb-list {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 280px;
+  max-height: calc(100% - 90px);
+  padding: 12px;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: rgb(251 248 241 / 92%);
+  box-shadow: 0 2px 14px rgb(0 0 0 / 30%);
+}
+
+.gwb-list-title {
+  color: var(--ink-soft, #6b6457);
+  font-size: 15px;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+
+.gwb-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 50px;
+  padding: 6px 10px;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink, #1f1d1a);
+  text-align: left;
+}
+
+.gwb-row:active {
+  background: var(--ink-wash, rgb(31 29 26 / 7%));
+}
+
+.gwb-row.gwb-selected {
+  border-left-color: var(--ink, #1f1d1a);
+  background: var(--ink-wash, rgb(31 29 26 / 7%));
+}
+
+.gwb-row-name {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.gwb-row-sub {
+  color: var(--ink-soft, #6b6457);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.gwb-hint,
+.gwb-status {
+  position: absolute;
+  left: 50%;
+  z-index: 5;
+  max-width: 80%;
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: rgb(251 248 241 / 88%);
+  color: var(--ink, #1f1d1a);
+  font-size: 17px;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.gwb-hint {
+  bottom: 16px;
+  font-style: italic;
+}
+
+.gwb-status {
+  bottom: 62px;
+  white-space: pre-line; /* one message per line */
+}
+
+.gwb-status:empty,
+.gwb-hidden {
+  display: none;
+}
+
+/* globe.gl pins */
+.gwb-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+}
+
+.gwb-pin-dot {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #c0392b;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 60%);
+}
+
+.gwb-pin-home .gwb-pin-dot { background: #1f6fb5; }
+.gwb-pin-tap .gwb-pin-dot { background: #e0a400; }
+.gwb-pin-selected .gwb-pin-dot { transform: scale(1.35); }
+
+.gwb-pin-label {
+  margin-top: 3px;
+  padding: 1px 8px;
+  border-radius: 8px;
+  background: #fbf8f1; /* opaque, so pins close together do not mix their labels */
+  box-shadow: 0 1px 3px rgb(0 0 0 / 35%);
+  color: #1f1d1a;
+  font-family: var(--font-book, Georgia, serif);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* ── place panel ── */
+
+.gwb-panel {
+  flex: 0 0 36%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 4px 6px 12px 2px;
+  overflow-y: auto;
+}
+
+.gwb-panel-empty,
+.gwb-loading {
+  color: var(--ink-faint, #a39b8c);
+  font-size: 22px;
+  font-style: italic;
+}
+
+.gwb-head {
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--ink, #1f1d1a);
+}
+
+.gwb-place {
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.gwb-area {
+  color: var(--ink-soft, #6b6457);
+  font-size: 19px;
+  font-style: italic;
+}
+
+.gwb-clock {
+  margin-top: 4px;
+  font-size: 20px;
+  font-variant-numeric: lining-nums;
+}
+
+.gwb-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.gwb-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule, #d9d0bf);
+}
+
+.gwb-section-title {
+  margin: 0;
+  color: var(--ink-soft, #6b6457);
+  font-size: 16px;
+  font-weight: 400;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+
+.gwb-error {
+  color: var(--alert, #a3271f);
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+/* Google's weather icons are colored; e-ink look draws them in grey ink. */
+.gwb-wx-icon,
+.gwb-now-icon {
+  filter: grayscale(1) contrast(1.15) brightness(0.85);
+}
+
+.gwb-now {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gwb-now-icon {
+  width: 84px;
+  height: 84px;
+}
+
+.gwb-now-temp {
+  font-size: 64px;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: lining-nums;
+}
+
+.gwb-now-text {
+  font-size: 21px;
+  font-style: italic;
+}
+
+.gwb-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 12px;
+}
+
+.gwb-fact {
+  display: flex;
+  flex-direction: column;
+}
+
+.gwb-fact-label {
+  color: var(--ink-soft, #6b6457);
+  font-size: 14px;
+}
+
+.gwb-fact-value {
+  font-size: 19px;
+  font-variant-numeric: lining-nums;
+}
+
+.gwb-hours {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  padding-top: 6px;
+}
+
+.gwb-hour {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: lining-nums;
+}
+
+.gwb-hour .gwb-wx-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.gwb-hour-time,
+.gwb-hour-rain {
+  color: var(--ink-soft, #6b6457);
+  font-size: 14px;
+}
+
+.gwb-hour-temp {
+  font-size: 18px;
+}
+
+.gwb-days {
+  display: flex;
+  flex-direction: column;
+}
+
+.gwb-day {
+  display: grid;
+  grid-template-columns: 64px 34px 44px 44px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  border-top: 1px solid var(--rule, #d9d0bf);
+  font-size: 18px;
+  font-variant-numeric: lining-nums;
+}
+
+.gwb-day .gwb-wx-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.gwb-day-rain {
+  color: var(--ink-soft, #6b6457);
+  font-size: 14px;
+}
+
+.gwb-day-low {
+  color: var(--ink-soft, #6b6457);
+  text-align: right;
+}
+
+.gwb-day-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule, #d9d0bf);
+}
+
+.gwb-day-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 3px;
+  background: var(--ink, #1f1d1a);
+}
+
+.gwb-air {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gwb-air-dot {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgb(0 0 0 / 25%);
+  border-radius: 50%;
+}
+
+.gwb-air-aqi {
+  font-size: 34px;
+  font-weight: 600;
+  font-variant-numeric: lining-nums;
+}
+
+.gwb-air-cat {
+  font-size: 20px;
+  font-style: italic;
+}
+
+.gwb-air-sub {
+  color: var(--ink-soft, #6b6457);
+  font-size: 15px;
+}
+
+.gwb-news {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.gwb-news-item {
+  padding-left: 4px;
+}
+
+.gwb-news-title {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.gwb-news-meta {
+  color: var(--ink-soft, #6b6457);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.gwb-credit {
+  color: var(--ink-faint, #a39b8c);
+  font-size: 13px;
+}
+
+/* About, nearby, country */
+.gwb-about-img {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 10px;
+  filter: saturate(0.85);
+}
+
+.gwb-about-desc {
+  color: var(--ink-soft, #6b6457);
+  font-size: 16px;
+  font-style: italic;
+}
+
+.gwb-about-text {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.gwb-nearby {
+  display: flex;
+  flex-direction: column;
+}
+
+.gwb-near {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  padding: 6px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--rule, #d9d0bf);
+  background: transparent;
+  color: var(--ink, #1f1d1a);
+  font-size: 17px;
+  text-align: left;
+}
+
+.gwb-near:active {
+  background: var(--ink-wash, rgb(31 29 26 / 7%));
+}
+
+.gwb-near-dist {
+  flex: 0 0 auto;
+  color: var(--ink-soft, #6b6457);
+  font-size: 14px;
+}
+
+.gwb-country-name {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* Ink drawn icons */
+.gwb-ink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gwb-ink svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--ink, #1f1d1a);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gwb-ink .gwb-dark {
+  fill: var(--ink-soft, #6b6457);
+  stroke: var(--ink, #1f1d1a);
+}
+
+.gwb-ink .gwb-lit {
+  fill: var(--paper-raised, #fbf8f1);
+  stroke: none;
+}
+
+.gwb-ink.gwb-wx-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.gwb-ink.gwb-now-icon {
+  width: 84px;
+  height: 84px;
+}
+
+.gwb-sun {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+}
+
+.gwb-sun-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gwb-sun-icon {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+}
+
+/* Close pins overlap: the selected pin, then home, stay on top. */
+.gwb-pin { z-index: 1; } /* globe.gl positions each pin absolutely itself */
+.gwb-pin-home { z-index: 2; }
+.gwb-pin-selected { z-index: 3; }

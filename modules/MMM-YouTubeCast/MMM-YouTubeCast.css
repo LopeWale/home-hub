@@ -1,0 +1,131 @@
+.ytc-root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.ytc-idle {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.ytc-title {
+  font-size: var(--font-size-large);
+  color: var(--color-text-bright);
+  line-height: 1.1;
+}
+
+.ytc-steps {
+  max-width: 1100px;
+  margin: 0;
+  padding-left: 1.4em;
+  text-align: left;
+  font-size: var(--font-size-medium);
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.ytc-steps li {
+  margin: 8px 0;
+}
+
+.ytc-code {
+  margin-top: 12px;
+  padding: 14px 32px;
+  border: 2px solid var(--rule-strong, rgb(255 255 255 / 25%));
+  border-radius: 16px;
+  background: var(--paper-raised, transparent);
+  font-size: 64px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.ytc-sub {
+  font-size: var(--font-size-small);
+  color: var(--color-text-dimmed);
+}
+
+/* Video: fixed to the whole screen. fullscreen_below has no transform, so
+ * position:fixed is relative to the viewport. */
+.ytc-stage.ytc-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 50000;
+  background: #000;
+}
+
+.ytc-player,
+.ytc-player iframe {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+}
+
+.ytc-taplayer {
+  position: absolute;
+  inset: 0;
+}
+
+/* Top of the screen: YouTube draws captions along the bottom. */
+.ytc-controls {
+  position: absolute;
+  left: 50%;
+  top: 32px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.ytc-controls.ytc-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ytc-btn {
+  min-width: 150px;
+  min-height: 72px;
+  padding: 0 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 18px;
+  background: rgb(10 10 10 / 80%);
+  color: #fff;
+  font-size: 24px;
+  touch-action: manipulation;
+}
+
+.ytc-btn:active {
+  background: rgb(255 255 255 / 25%);
+}
+
+.ytc-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  padding: 14px 22px;
+  border-radius: 14px;
+  background: rgb(120 20 20 / 85%);
+  color: #fff;
+  font-size: 22px;
+  text-align: center;
+}
+
+.ytc-hidden {
+  display: none !important;
+}

@@ -1,0 +1,78 @@
+/* Divider visuals only. Pane sizing lives in config/custom.css. */
+
+.msl-divider {
+  position: relative;
+  height: 100%;
+  width: var(--msl-handle-width, 12px);
+}
+
+/* Visible strip is 12px, the touch target is wider (--msl-hit-width). */
+.msl-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--msl-hit-width, 36px);
+  transform: translateX(-50%);
+  cursor: col-resize;
+  touch-action: none; /* stop the browser from turning the drag into a pan */
+  z-index: 5;
+}
+
+.msl-grip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--msl-handle-width, 12px);
+  transform: translateX(-50%);
+  border-radius: 6px;
+  background: transparent;
+}
+
+.msl-grip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 64px;
+  transform: translate(-50%, -50%);
+  border-radius: 2px;
+  background: var(--rule-strong, #b9ae99);
+}
+
+html.msl-dragging .msl-grip {
+  background: var(--ink-wash, rgb(31 29 26 / 7%));
+}
+
+.msl-buttons {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 6;
+}
+
+.msl-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--rule-strong, #b9ae99);
+  border-radius: 22px;
+  background: var(--paper-raised, #fbf8f1);
+  color: var(--ink, #1f1d1a);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  touch-action: manipulation;
+}
+
+.msl-btn:active,
+.msl-btn.msl-active {
+  background: var(--ink-wash, rgb(31 29 26 / 7%));
+}

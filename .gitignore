@@ -1,0 +1,25 @@
+# Secrets and personal settings: never commit
+config.env
+config.bridge.json
+bridge.env
+mm.env
+
+# Runtime data written by modules on the Pi
+modules/*/data/
+modules/MMM-GlobeWeatherBridge/vendor/
+tasks.json
+members.json
+
+# Dependencies and build output
+node_modules/
+
+# macOS and editors
+.DS_Store
+._*
+*.swp
+.vscode/
+.idea/
+
+# Disk images and backups
+*.img
+pi-saved-data/

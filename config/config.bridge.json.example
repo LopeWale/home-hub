@@ -1,0 +1,8 @@
+{
+  "MMM-MyScoreboard": {
+    "sports": [
+      { "league": "NFL", "teams": [] },
+      { "league": "NBA", "teams": [] }
+    ]
+  }
+}

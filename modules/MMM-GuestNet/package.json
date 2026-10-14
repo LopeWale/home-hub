@@ -1,0 +1,10 @@
+{
+  "name": "mmm-guestnet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Small network status icon for the top bar. Tapping it shows a guest Wi-Fi join QR code in a popup.",
+  "license": "MIT",
+  "dependencies": {
+    "qrcode": "1.5.4"
+  }
+}

@@ -1,0 +1,22 @@
+# systemd USER unit. Installed to ~/.config/systemd/user/mm-configbridge.service
+# Runs separately from MagicMirror so a bad config cannot take the admin
+# UI down with it. Enabled for default.target; `loginctl enable-linger`
+# (done by install.sh) makes it start at boot.
+
+[Unit]
+Description=MagicMirror config bridge (Tailscale only admin UI on :8081)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/env node %h/.local/share/mm-configbridge/server.js
+Restart=always
+RestartSec=5
+# Basic hardening that still allows writing the MagicMirror config dir.
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=default.target

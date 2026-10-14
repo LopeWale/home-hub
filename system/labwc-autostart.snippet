@@ -1,0 +1,6 @@
+# >>> magicmirror kiosk >>>
+# Hand the Wayland session environment to the systemd user manager, then
+# start MagicMirror. Managed by install.sh, edit between the markers only.
+systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DISPLAY
+systemctl --user restart magicmirror.service &
+# <<< magicmirror kiosk <<<

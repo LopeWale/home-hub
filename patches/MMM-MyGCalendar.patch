@@ -1,0 +1,2612 @@
+diff --git a/MMM-MyGCalendar.css b/MMM-MyGCalendar.css
+index b872323..e1a8fb4 100644
+--- a/MMM-MyGCalendar.css
++++ b/MMM-MyGCalendar.css
+@@ -1,606 +1,603 @@
+-/* =============================================
+-   MMM-MyGCalendar
+-   ============================================= */
+-
+-.gcal-wrapper {
+-  --gcal-bg:           #ffffff;
+-  --gcal-surface:      #f8f9fa;
+-  --gcal-text:         #202124;
+-  --gcal-text-muted:   #5f6368;
+-  --gcal-border:       #e0e0e0;
+-  --gcal-today-accent: #1a73e8;
+-  --gcal-today-bg:     #e8f0fe;
+-  --gcal-hover:        #f1f3f4;
+-  --gcal-past-opacity: 0.45;
+-  --gcal-radius-card:  16px;
+-  --gcal-radius-chip:  4px;
+-  --gcal-shadow:       0 4px 24px rgba(0,0,0,0.12), 0 1px 6px rgba(0,0,0,0.08);
+-  --gcal-font:         'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+-
+-  font-family: var(--gcal-font);
+-  width: 100%;
+-  box-sizing: border-box;
+-  color: var(--gcal-text);
++/* MMM-MyGCalendar, fridge planner edition [mm-fridge patch]
++ * Paper look. Colors and fonts come from the theme tokens in
++ * config/custom.css (:root), with fallbacks so the module works alone. */
++
++.MMM-MyGCalendar .gcal-wrapper {
++  --c-paper: var(--paper, #f4efe4);
++  --c-raised: var(--paper-raised, #fbf8f1);
++  --c-ink: var(--ink, #1f1d1a);
++  --c-soft: var(--ink-soft, #6b6457);
++  --c-faint: var(--ink-faint, #a39b8c);
++  --c-rule: var(--rule, #d9d0bf);
++  --c-wash: var(--ink-wash, rgb(31 29 26 / 7%));
++  height: 100%;
++  color: var(--c-ink);
++  font-family: var(--font-book, Georgia, serif);
++  text-align: left;
++  user-select: none;
++  touch-action: pan-y;
++}
++
++.MMM-MyGCalendar .gcal-card {
++  display: flex;
++  flex-direction: column;
++  height: 100%;
+ }
+ 
+-/* ── Card shell ────────────────────────────── */
+-
+-.gcal-card {
+-  background: var(--gcal-bg);
+-  border-radius: var(--gcal-radius-card);
+-  box-shadow: var(--gcal-shadow);
+-  overflow: hidden;
+-  width: 100%;
++.MMM-MyGCalendar button {
++  font-family: inherit;
++  color: inherit;
++  touch-action: manipulation;
+ }
+ 
+-/* ── Header ────────────────────────────────── */
++/* ── header ── */
+ 
+-.gcal-header {
+-  background: var(--gcal-bg);
+-  border-bottom: 1px solid var(--gcal-border);
+-  padding: 14px 20px 12px;
++.MMM-MyGCalendar .gcal-header {
+   display: flex;
+   align-items: center;
++  gap: 14px;
++  padding: 0 34px 12px 4px; /* right: room for the split divider buttons */
+ }
+ 
+-.gcal-month-title {
+-  font-size: 22px;
++.MMM-MyGCalendar .gcal-title {
++  display: flex;
++  align-items: baseline;
++  gap: 10px;
++  min-height: 52px;
++  padding: 0 12px 0 4px;
++  border: 0;
++  border-radius: 10px;
++  background: none;
++  font-size: 40px;
+   font-weight: 600;
+-  color: var(--gcal-text);
+-  letter-spacing: -0.2px;
++  letter-spacing: -0.01em;
+ }
+ 
+-/* ── Day-of-week header row ────────────────── */
++.MMM-MyGCalendar .gcal-title:active {
++  background: var(--c-wash);
++}
+ 
+-.gcal-day-headers {
+-  display: grid;
+-  grid-template-columns: repeat(7, 1fr);
+-  background: var(--gcal-surface);
+-  border-bottom: 2px solid var(--gcal-border);
++.MMM-MyGCalendar .gcal-caret {
++  color: var(--c-faint);
++  font-size: 22px;
+ }
+ 
+-.gcal-day-header {
+-  padding: 9px 0;
+-  text-align: center;
+-  font-size: 14px;
+-  font-weight: 700;
+-  color: var(--gcal-text-muted);
+-  letter-spacing: 0.9px;
+-  text-transform: uppercase;
++.gcal-pill {
++  min-width: 64px;
++  min-height: 48px;
++  padding: 0 18px;
++  border: 1px solid var(--rule-strong, #b9ae99);
++  border-radius: 24px;
++  background: transparent;
++  color: var(--ink, #1f1d1a);
++  font-family: var(--font-book, Georgia, serif);
++  font-size: 19px;
++  touch-action: manipulation;
+ }
+ 
+-/* ── Week rows ─────────────────────────────── */
++.gcal-pill:active {
++  background: var(--ink-wash, rgb(31 29 26 / 7%));
++}
+ 
+-.gcal-grid {
++.gcal-pill.gcal-view-on {
++  border-color: var(--ink, #1f1d1a);
++  background: var(--ink, #1f1d1a);
++  color: var(--paper, #f4efe4);
++}
++
++.MMM-MyGCalendar .gcal-views {
+   display: flex;
+-  flex-direction: column;
++  gap: 0;
++  margin-left: auto;
+ }
+ 
+-.gcal-week {
+-  display: grid;
+-  grid-template-columns: repeat(7, 1fr);
+-  border-bottom: 1px solid var(--gcal-border);
++.MMM-MyGCalendar .gcal-views .gcal-pill {
++  border-radius: 0;
++  margin-left: -1px;
++}
++
++.MMM-MyGCalendar .gcal-views .gcal-pill:first-child {
++  border-radius: 24px 0 0 24px;
+ }
+ 
+-.gcal-week:last-child {
+-  border-bottom: none;
++.MMM-MyGCalendar .gcal-views .gcal-pill:last-child {
++  border-radius: 0 24px 24px 0;
+ }
+ 
+-/* ── Day cells ─────────────────────────────── */
++/* ── body + swipe slide ── */
+ 
+-.gcal-day {
++.MMM-MyGCalendar .gcal-body {
++  flex: 1 1 auto;
++  min-height: 0;
+   display: flex;
+   flex-direction: column;
+-  padding: 8px 10px 10px;
+-  border-right: 1px solid var(--gcal-border);
+-  box-sizing: border-box;
+-  transition: background-color 0.12s ease;
+-  position: relative;
+-  overflow: hidden;
+ }
+ 
+-.gcal-day:last-child {
+-  border-right: none;
++.MMM-MyGCalendar .gcal-slide-next {
++  animation: gcal-in-next 220ms ease-out;
++}
++
++.MMM-MyGCalendar .gcal-slide-prev {
++  animation: gcal-in-prev 220ms ease-out;
+ }
+ 
+-.gcal-day:hover {
+-  background-color: var(--gcal-hover);
++@keyframes gcal-in-next {
++  from { opacity: 0.2; transform: translateX(60px); }
++  to { opacity: 1; transform: none; }
+ }
+ 
+-.gcal-day.gcal-past {
+-  opacity: var(--gcal-past-opacity);
++@keyframes gcal-in-prev {
++  from { opacity: 0.2; transform: translateX(-60px); }
++  to { opacity: 1; transform: none; }
+ }
+ 
+-.gcal-day.gcal-today {
+-  background-color: var(--gcal-today-bg);
++.MMM-MyGCalendar .gcal-loading,
++.MMM-MyGCalendar .gcal-empty {
++  color: var(--c-faint);
++  font-style: italic;
+ }
+ 
+-.gcal-day.gcal-today:hover {
+-  background-color: #dce8fd;
++.MMM-MyGCalendar .gcal-loading {
++  margin: auto;
++  font-size: 24px;
+ }
+ 
+-/* ── Day number ────────────────────────────── */
++.gcal-empty-big {
++  padding: 40px 8px;
++  font-size: 24px;
++  text-align: center;
++}
+ 
+-.gcal-day-top-row {
++/* ── month ── */
++
++.MMM-MyGCalendar .gcal-month {
++  flex: 1 1 auto;
+   display: flex;
+-  align-items: center;
+-  justify-content: space-between;
+-  gap: 6px;
+-  margin-bottom: 6px;
++  flex-direction: column;
++  min-height: 0;
+ }
+ 
+-.gcal-day-num-wrap {
+-  display: inline-flex;
+-  align-items: center;
+-  gap: 5px;
+-  padding: 2px 4px 2px 2px;
+-  border-radius: 6px;
+-  cursor: pointer;
+-  transition: background-color 0.12s ease;
++.MMM-MyGCalendar .gcal-dow {
++  display: grid;
++  grid-template-columns: repeat(7, 1fr);
++  border-bottom: 2px solid var(--c-ink);
+ }
+ 
+-.gcal-day-num-wrap:hover {
+-  background-color: rgba(0, 0, 0, 0.07);
++.MMM-MyGCalendar .gcal-dow div {
++  padding: 0 10px 6px;
++  color: var(--c-soft);
++  font-size: 19px;
++  font-variant: small-caps;
++  letter-spacing: 0.08em;
++  text-transform: lowercase;
+ }
+ 
+-.gcal-today .gcal-day-num-wrap:hover {
+-  background-color: rgba(26, 115, 232, 0.15);
++.MMM-MyGCalendar .gcal-month-grid {
++  flex: 1 1 auto;
++  display: grid;
++  grid-template-columns: repeat(7, minmax(0, 1fr));
++  grid-template-rows: repeat(var(--gcal-weeks, 5), minmax(0, 1fr));
++  min-height: 0;
+ }
+ 
+-.gcal-day-month-tag {
+-  font-size: 13px;
+-  font-weight: 600;
+-  color: var(--gcal-text-muted);
+-  letter-spacing: 0.3px;
+-  text-transform: uppercase;
++.MMM-MyGCalendar .gcal-cell {
++  display: flex;
++  flex-direction: column;
++  min-width: 0;
++  min-height: 0;
++  padding: 6px 6px 4px;
++  border-right: 1px solid var(--c-rule);
++  border-bottom: 1px solid var(--c-rule);
++  overflow: hidden;
++}
++
++.MMM-MyGCalendar .gcal-cell:nth-child(7n) {
++  border-right: 0;
+ }
+ 
+-.gcal-day-number {
++.MMM-MyGCalendar .gcal-cell:active {
++  background: var(--c-wash);
++}
++
++.MMM-MyGCalendar .gcal-num {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+-  width: 34px;
++  align-self: flex-start;
++  min-width: 34px;
+   height: 34px;
+-  border-radius: 50%;
+-  font-size: 17px;
+-  font-weight: 500;
+-  color: var(--gcal-text);
+-  line-height: 1;
+-  flex-shrink: 0;
++  padding: 0 4px;
++  border-radius: 17px;
++  font-size: 21px;
++  font-weight: 600;
++  font-variant-numeric: lining-nums;
+ }
+ 
+-.gcal-today .gcal-day-number {
+-  background-color: var(--gcal-today-accent);
+-  color: #ffffff;
+-  font-weight: 700;
++.MMM-MyGCalendar .gcal-today-cell .gcal-num {
++  background: var(--c-ink);
++  color: var(--c-paper);
+ }
+ 
+-/* ── Event chips ───────────────────────────── */
+-
+-.gcal-day-events {
+-  display: flex;
+-  flex-direction: column;
+-  gap: 4px;
+-  height: calc(var(--gcal-max-events, 3) * 22px + (var(--gcal-max-events, 3) - 1) * 4px);
++.MMM-MyGCalendar .gcal-other .gcal-num,
++.MMM-MyGCalendar .gcal-other .gcal-lines {
++  color: var(--c-faint);
+ }
+ 
+-.gcal-event {
+-  display: flex;
+-  align-items: center;
+-  gap: 5px;
+-  height: 22px;
+-  background-color: color-mix(in srgb, var(--ev-color) 12%, transparent);
+-  border-left: 3px solid var(--ev-color);
+-  border-radius: var(--gcal-radius-chip);
+-  padding: 2px 5px 2px 4px;
+-  box-sizing: border-box;
+-  cursor: pointer;
+-  transition: background-color 0.12s ease, transform 0.1s ease;
+-  min-width: 0;
+-  flex-shrink: 0;
++.MMM-MyGCalendar .gcal-other {
++  background: var(--paper-shade, rgb(120 100 60 / 5%));
+ }
+ 
+-.gcal-event:hover {
+-  background-color: color-mix(in srgb, var(--ev-color) 22%, transparent);
+-  transform: translateY(-1px);
++.MMM-MyGCalendar .gcal-past .gcal-lines,
++.MMM-MyGCalendar .gcal-past .gcal-num,
++.MMM-MyGCalendar .gcal-col.gcal-past .gcal-col-list {
++  opacity: var(--gcal-past-opacity, 0.55);
+ }
+ 
+-.gcal-event-dot {
+-  width: 8px;
+-  height: 8px;
+-  border-radius: 50%;
+-  flex-shrink: 0;
++.MMM-MyGCalendar .gcal-lines {
++  position: relative; /* offsetTop of the lines is measured from here (fitMonthCells) */
++  flex: 1 1 auto;
++  min-height: 0;
++  display: flex;
++  flex-direction: column;
++  gap: 3px;
++  margin-top: 2px;
++  overflow: hidden;
+ }
+ 
+-.gcal-event-label {
+-  font-size: 14px;
+-  font-weight: 500;
+-  color: var(--gcal-text);
++.MMM-MyGCalendar .gcal-line {
++  flex: 0 0 auto;
++  height: 26px;
++  line-height: 26px;
++  font-size: 17px;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+-  line-height: 1.3;
+ }
+ 
+-/* ── Multi-day event bars (connect across adjacent days in the same week row) ── */
++.MMM-MyGCalendar .gcal-hidden {
++  display: none;
++}
+ 
+-.gcal-event-span {
+-  background-color: color-mix(in srgb, var(--ev-color) 45%, white);
+-  border-left: none;
+-  border-radius: 0;
+-  position: relative;
+-  z-index: 1;
++/* all day and multi day: a highlighter stroke in the event color */
++.MMM-MyGCalendar .gcal-band {
++  margin: 0 -7px;
++  padding: 0 9px;
++  background: color-mix(in srgb, var(--ev-color) 26%, transparent);
++  color: var(--c-ink);
+ }
+ 
+-.gcal-event-span .gcal-event-label {
+-  color: var(--gcal-text);
+-  font-weight: 600;
++.MMM-MyGCalendar .gcal-band-start {
++  margin-left: 0;
++  padding-left: 7px;
++  border-left: 3px solid var(--ev-color);
++  border-radius: 3px 0 0 3px;
+ }
+ 
+-.gcal-event-span:hover {
+-  background-color: color-mix(in srgb, var(--ev-color) 60%, white);
+-  transform: none;
++.MMM-MyGCalendar .gcal-band-end {
++  margin-right: 0;
++  border-radius: 0 3px 3px 0;
+ }
+ 
+-.gcal-event-span--start {
+-  border-top-left-radius: var(--gcal-radius-chip);
+-  border-bottom-left-radius: var(--gcal-radius-chip);
++.MMM-MyGCalendar .gcal-band-start.gcal-band-end {
++  border-radius: 3px;
+ }
+ 
+-.gcal-event-span--end {
+-  border-top-right-radius: var(--gcal-radius-chip);
+-  border-bottom-right-radius: var(--gcal-radius-chip);
++/* timed: colored dot, time, title */
++.MMM-MyGCalendar .gcal-timed {
++  display: flex;
++  align-items: center;
++  gap: 6px;
++  padding-left: 2px;
+ }
+ 
+-.gcal-event-span:not(.gcal-event-span--start) {
+-  margin-left: -10px;
++.MMM-MyGCalendar .gcal-timed::before {
++  content: "";
++  flex: 0 0 auto;
++  width: 8px;
++  height: 8px;
++  border-radius: 50%;
++  background: var(--ev-color);
+ }
+ 
+-.gcal-event-span:not(.gcal-event-span--end) {
+-  margin-right: -10px;
++.MMM-MyGCalendar .gcal-time {
++  flex: 0 0 auto;
++  color: var(--c-soft);
++  font-size: 15px;
++  font-variant-numeric: tabular-nums;
+ }
+ 
+-.gcal-day-more-badge {
+-  font-size: 11px;
+-  font-weight: 700;
+-  color: var(--gcal-text-muted);
+-  background: rgba(0, 0, 0, 0.06);
+-  border-radius: 8px;
+-  padding: 2px 6px;
+-  cursor: pointer;
+-  flex-shrink: 0;
+-  transition: background-color 0.1s ease, color 0.1s ease;
++.MMM-MyGCalendar .gcal-line-title {
++  min-width: 0;
++  overflow: hidden;
++  text-overflow: ellipsis;
+ }
+ 
+-.gcal-day-more-badge:hover {
+-  background: rgba(0, 0, 0, 0.12);
+-  color: var(--gcal-text);
++.MMM-MyGCalendar .gcal-more {
++  flex: 0 0 auto;
++  color: var(--c-soft);
++  font-size: 15px;
++  font-style: italic;
+ }
+ 
+-.gcal-today .gcal-day-more-badge {
+-  background: rgba(26, 115, 232, 0.12);
+-  color: var(--gcal-today-accent);
++.MMM-MyGCalendar .gcal-more:empty {
++  display: none;
+ }
+ 
+-/* ── Loading state ─────────────────────────── */
++/* ── week ── */
+ 
+-.gcal-loading-card {
+-  min-height: 200px;
+-  display: flex;
+-  align-items: center;
+-  justify-content: center;
++.MMM-MyGCalendar .gcal-week {
++  flex: 1 1 auto;
++  display: grid;
++  grid-template-columns: repeat(7, minmax(0, 1fr));
++  min-height: 0;
++  border-top: 2px solid var(--c-ink);
+ }
+ 
+-.gcal-loading {
++.MMM-MyGCalendar .gcal-col {
+   display: flex;
+   flex-direction: column;
+-  align-items: center;
+-  gap: 14px;
+-  padding: 40px;
+-  color: var(--gcal-text-muted);
+-  font-size: 18px;
+-}
+-
+-.gcal-spinner {
+-  width: 32px;
+-  height: 32px;
+-  border: 3px solid var(--gcal-border);
+-  border-top-color: var(--gcal-today-accent);
+-  border-radius: 50%;
+-  animation: gcal-spin 0.8s linear infinite;
++  min-height: 0;
++  border-right: 1px solid var(--c-rule);
+ }
+ 
+-@keyframes gcal-spin {
+-  to { transform: rotate(360deg); }
++.MMM-MyGCalendar .gcal-col:last-child {
++  border-right: 0;
+ }
+ 
+-/* ══════════════════════════════════════════════
+-   Modal — shared infrastructure
+-   ══════════════════════════════════════════════ */
+-
+-.gcal-modal-backdrop {
+-  --gcal-text:       #202124;
+-  --gcal-text-muted: #5f6368;
+-  --gcal-border:     #e0e0e0;
+-  --gcal-hover:      #f1f3f4;
+-  position: fixed;
+-  inset: 0;
+-  background: rgba(0, 0, 0, 0.55);
+-  z-index: 99999;
++.MMM-MyGCalendar .gcal-col-head {
+   display: flex;
+   align-items: center;
+-  justify-content: center;
+-  opacity: 0;
+-  pointer-events: none;
+-  transition: opacity 0.15s ease;
++  gap: 8px;
++  min-height: 56px;
++  padding: 6px 10px;
++  border: 0;
++  border-bottom: 1px solid var(--c-rule);
++  background: none;
+ }
+ 
+-.gcal-modal-backdrop.gcal-visible {
+-  opacity: 1;
+-  pointer-events: all;
++.MMM-MyGCalendar .gcal-col-dow {
++  color: var(--c-soft);
++  font-size: 16px;
++  font-variant: small-caps;
++  letter-spacing: 0.08em;
++  text-transform: lowercase;
+ }
+ 
+-.gcal-modal {
+-  background: #ffffff;
+-  border-radius: 18px;
+-  width: clamp(320px, 42vw, 520px);
+-  max-width: 90vw;
+-  max-height: 80vh;
++.MMM-MyGCalendar .gcal-col-list {
++  flex: 1 1 auto;
++  display: flex;
++  flex-direction: column;
++  gap: 8px;
++  padding: 10px 8px;
+   overflow-y: auto;
+-  box-shadow:
+-    0 24px 80px rgba(0,0,0,0.3),
+-    0 6px 20px rgba(0,0,0,0.15);
+ }
+ 
+-.gcal-modal-backdrop.gcal-visible .gcal-modal {
+-  transform: translateY(0) scale(1);
++.MMM-MyGCalendar .gcal-col .gcal-empty {
++  padding: 4px;
+ }
+ 
+-.gcal-modal::-webkit-scrollbar { width: 5px; }
+-.gcal-modal::-webkit-scrollbar-track { background: transparent; }
+-.gcal-modal::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
++/* ── entries (week, day, agenda popup) ── */
+ 
+-/* ── Modal header ──────────────────────────── */
+-
+-.gcal-modal-header {
+-  padding: 14px 18px 12px;
++.gcal-entry {
+   display: flex;
+-  align-items: center;
+-  justify-content: space-between;
+-  gap: 12px;
++  flex-direction: column;
++  gap: 2px;
++  width: 100%;
++  padding: 8px 10px 8px 12px;
++  border: 0;
++  border-left: 4px solid var(--ev-color);
++  border-radius: 2px 8px 8px 2px;
++  background: var(--paper-raised, #fbf8f1);
++  color: var(--ink, #1f1d1a);
++  font-family: var(--font-book, Georgia, serif);
++  text-align: left;
++  touch-action: manipulation;
+ }
+ 
+-/* Day-view header uses a neutral dark gradient */
+-.gcal-modal-header--day {
+-  background: linear-gradient(140deg, #1c1c2e 0%, #2d2d48 100%);
+-  align-items: flex-start;
++.gcal-entry:active {
++  background: var(--ink-wash, rgb(31 29 26 / 7%));
+ }
+ 
+-.gcal-modal-header-content {
+-  flex: 1;
+-  display: flex;
+-  flex-direction: column;
+-  gap: 4px;
+-  min-width: 0;
++.gcal-entry-allday {
++  background: color-mix(in srgb, var(--ev-color) 20%, var(--paper-raised, #fbf8f1));
+ }
+ 
+-.gcal-modal-title {
+-  font-size: 19px;
+-  font-weight: 700;
+-  color: #ffffff;
+-  margin: 0;
++.gcal-entry-time {
++  color: var(--ink-soft, #6b6457);
++  font-size: 15px;
++  font-variant-numeric: tabular-nums;
++}
++
++.gcal-entry-title {
++  font-size: 18px;
++  font-weight: 600;
+   line-height: 1.25;
+-  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
++  overflow-wrap: anywhere;
+ }
+ 
+-.gcal-modal-subtitle {
++.gcal-entry-place,
++.gcal-entry-cal {
++  color: var(--ink-soft, #6b6457);
+   font-size: 15px;
+-  color: rgba(255, 255, 255, 0.65);
+-  font-weight: 400;
++  font-style: italic;
++  overflow-wrap: anywhere;
+ }
+ 
+-/* Button group (back + close) */
+-.gcal-modal-btn-group {
+-  display: flex;
+-  align-items: center;
+-  gap: 8px;
+-  flex-shrink: 0;
++.gcal-entry-roomy {
++  display: grid;
++  grid-template-columns: 240px 1fr;
++  column-gap: 18px;
++  padding: 14px 16px 14px 18px;
+ }
+ 
+-.gcal-modal-close,
+-.gcal-modal-back {
+-  background: rgba(255,255,255,0.18);
+-  border: 1px solid rgba(255,255,255,0.25);
+-  border-radius: 50%;
+-  width: 34px;
+-  height: 34px;
+-  display: flex;
+-  align-items: center;
+-  justify-content: center;
+-  cursor: pointer;
+-  color: rgba(255,255,255,0.9);
+-  transition: background 0.15s, transform 0.12s;
+-  flex-shrink: 0;
+-  padding: 0;
+-  line-height: 1;
++.gcal-entry-roomy .gcal-entry-time {
++  grid-row: 1 / span 3;
++  font-size: 19px;
+ }
+ 
+-.gcal-modal-close { font-size: 13px; }
+-.gcal-modal-back  { font-size: 17px; }
+-
+-.gcal-modal-close:hover {
+-  background: rgba(255,255,255,0.3);
+-  transform: rotate(90deg);
++.gcal-entry-roomy .gcal-entry-title {
++  font-size: 23px;
+ }
+ 
+-.gcal-modal-back:hover {
+-  background: rgba(255,255,255,0.3);
+-  transform: translateX(-2px);
++.gcal-entry-roomy .gcal-entry-place,
++.gcal-entry-roomy .gcal-entry-cal {
++  grid-column: 2;
++  font-size: 17px;
+ }
+ 
+-/* ── Event detail modal body ───────────────── */
++/* ── day ── */
+ 
+-.gcal-modal-body {
+-  padding: 16px 22px 22px;
++.MMM-MyGCalendar .gcal-day {
++  flex: 1 1 auto;
+   display: flex;
+   flex-direction: column;
+-  gap: 13px;
+-}
+-
+-.gcal-modal-row {
+-  display: flex;
+-  align-items: flex-start;
+   gap: 12px;
+-  font-size: 16px;
+-  color: #202124;
+-  line-height: 1.5;
++  min-height: 0;
++  padding: 16px 4px;
++  border-top: 2px solid var(--c-ink);
++  overflow-y: auto;
+ }
+ 
+-.gcal-modal-icon {
+-  width: 20px;
+-  height: 20px;
+-  flex-shrink: 0;
+-  margin-top: 2px;
+-  background-color: #5f6368;
+-  -webkit-mask-size: contain;
+-  mask-size: contain;
+-  -webkit-mask-repeat: no-repeat;
+-  mask-repeat: no-repeat;
+-  -webkit-mask-position: center;
+-  mask-position: center;
+-}
++/* ── popups on <body>: agenda, event details, month picker ── */
+ 
+-.gcal-icon-clock {
+-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z'/%3E%3C/svg%3E");
+-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z'/%3E%3C/svg%3E");
++.gcal-modal-backdrop,
++.gcal-picker-backdrop {
++  position: fixed;
++  inset: 0;
++  z-index: 100000;
++  display: none;
++  align-items: center;
++  justify-content: center;
++  background: var(--scrim, rgb(30 26 20 / 45%));
+ }
+ 
+-.gcal-icon-pin {
+-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E");
+-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E");
++.gcal-picker-backdrop,
++.gcal-modal-backdrop.gcal-visible {
++  display: flex;
+ }
+ 
+-.gcal-icon-note {
+-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z'/%3E%3C/svg%3E");
+-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z'/%3E%3C/svg%3E");
++.gcal-modal,
++.gcal-picker {
++  display: flex;
++  flex-direction: column;
++  max-height: 86vh;
++  border: 1px solid var(--rule, #d9d0bf);
++  border-radius: 18px;
++  background: var(--paper, #f4efe4);
++  color: var(--ink, #1f1d1a);
++  box-shadow: 0 18px 50px rgb(40 30 10 / 25%);
++  font-family: var(--font-book, Georgia, serif);
+ }
+ 
+-.gcal-modal-text {
+-  word-break: break-word;
++.gcal-modal {
++  width: 760px;
++  overflow: hidden;
+ }
+ 
+-.gcal-modal-cal-dot {
+-  width: 11px;
+-  height: 11px;
+-  border-radius: 50%;
+-  flex-shrink: 0;
+-  margin-top: 4px;
++.gcal-modal-header {
++  display: flex;
++  align-items: flex-start;
++  gap: 14px;
++  padding: 22px 24px 16px;
++  border-bottom: 2px solid var(--ink, #1f1d1a);
+ }
+ 
+-.gcal-modal-cal-name {
+-  font-size: 15px;
+-  color: #5f6368;
+-  font-style: italic;
++.gcal-modal-header-event {
++  border-bottom-color: var(--ev-color);
++  border-bottom-width: 4px;
+ }
+ 
+-.gcal-modal-body > .gcal-modal-row + .gcal-modal-row {
+-  border-top: 1px solid #f1f3f4;
+-  padding-top: 13px;
++.gcal-modal-titles {
++  flex: 1 1 auto;
++  min-width: 0;
+ }
+ 
+-/* ══════════════════════════════════════════════
+-   Day-view modal body
+-   ══════════════════════════════════════════════ */
+-
+-.gcal-day-modal-body {
+-  padding: 14px 18px 20px;
+-  gap: 8px;
++.gcal-modal-title {
++  margin: 0;
++  font-size: 30px;
++  font-weight: 600;
++  line-height: 1.2;
++  overflow-wrap: anywhere;
+ }
+ 
+-.gcal-day-modal-empty {
+-  padding: 28px 0;
+-  text-align: center;
+-  color: var(--gcal-text-muted);
+-  font-size: 16px;
++.gcal-modal-subtitle {
++  margin-top: 4px;
++  color: var(--ink-soft, #6b6457);
++  font-size: 18px;
+   font-style: italic;
+ }
+ 
+-/* ── Day event item ─────────────────────────── */
++.gcal-modal-body {
++  display: flex;
++  flex-direction: column;
++  gap: 10px;
++  padding: 18px 24px 22px;
++  overflow-y: auto;
++}
+ 
+-.gcal-day-event-item {
+-  --ev-color: #4285F4;
++.gcal-modal-foot {
+   display: flex;
+-  align-items: stretch;
+-  gap: 13px;
+-  padding: 11px 13px;
+-  border-radius: 10px;
+-  cursor: pointer;
+-  background: #f8f9fa;
+-  border: 1px solid #eaeaea;
+-  transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
++  justify-content: flex-end;
++  padding: 0 24px 20px;
+ }
+ 
+-.gcal-day-event-item:hover {
+-  background: #f0f4ff;
+-  border-color: rgba(66, 133, 244, 0.25);
+-  transform: translateY(-1px);
++.gcal-modal-row {
++  display: grid;
++  grid-template-columns: 90px 1fr;
++  gap: 16px;
++  padding: 8px 0;
++  border-bottom: 1px solid var(--rule, #d9d0bf);
++  font-size: 21px;
+ }
+ 
+-.gcal-day-event-bar {
+-  width: 4px;
+-  border-radius: 4px;
+-  background: var(--ev-color);
+-  flex-shrink: 0;
+-  align-self: stretch;
+-  min-height: 36px;
++.gcal-modal-row:last-child {
++  border-bottom: 0;
+ }
+ 
+-.gcal-day-event-content {
+-  display: flex;
+-  flex-direction: column;
+-  gap: 2px;
+-  flex: 1;
+-  min-width: 0;
++.gcal-modal-label {
++  color: var(--ink-soft, #6b6457);
++  font-size: 18px;
++  font-variant: small-caps;
++  letter-spacing: 0.08em;
++  text-transform: lowercase;
++  padding-top: 4px;
+ }
+ 
+-.gcal-day-event-time {
+-  font-size: 13px;
+-  font-weight: 600;
+-  color: var(--gcal-text-muted);
+-  letter-spacing: 0.3px;
+-  text-transform: uppercase;
++.gcal-modal-text {
++  white-space: pre-wrap;
++  overflow-wrap: anywhere;
+ }
+ 
+-.gcal-day-event-title {
+-  font-size: 17px;
+-  font-weight: 600;
+-  color: var(--gcal-text);
+-  line-height: 1.3;
++.gcal-picker {
++  width: 640px;
++  gap: 18px;
++  padding: 24px;
+ }
+ 
+-.gcal-day-event-loc {
+-  font-size: 14px;
+-  color: var(--gcal-text-muted);
+-  white-space: nowrap;
+-  overflow: hidden;
+-  text-overflow: ellipsis;
+-  margin-top: 2px;
++.gcal-picker-years {
++  display: grid;
++  grid-template-columns: repeat(6, 1fr);
++  gap: 8px;
+ }
+ 
+-.gcal-day-event-cal {
+-  font-size: 13px;
+-  font-weight: 500;
+-  font-style: italic;
+-  margin-top: 4px;
++.gcal-picker-months {
++  display: grid;
++  grid-template-columns: repeat(4, 1fr);
++  gap: 10px;
+ }
+ 
+-/* ══════════════════════════════════════════════
+-   Full-width mode  (config: fullWidth: true)
+-   Removes border-radius and shadow so the card
+-   sits flush edge-to-edge in the top_bar region.
+-   ══════════════════════════════════════════════ */
++.gcal-picker-months .gcal-pill {
++  min-height: 64px;
++  font-size: 22px;
++}
+ 
+-.gcal-wrapper.gcal-full-width .gcal-card {
+-  border-radius: 0;
+-  box-shadow: none;
++.gcal-picker-now:not(.gcal-view-on) {
++  border-color: var(--ink, #1f1d1a);
++  border-width: 2px;
++}
++
++.gcal-picker-actions {
++  display: flex;
++  justify-content: flex-end;
++  gap: 10px;
+ }
+diff --git a/MMM-MyGCalendar.js b/MMM-MyGCalendar.js
+index 7154812..0d2e9f3 100644
+--- a/MMM-MyGCalendar.js
++++ b/MMM-MyGCalendar.js
+@@ -1,723 +1,843 @@
++/* MMM-MyGCalendar, fridge planner edition [mm-fridge patch]
++ *
++ * The upstream rolling 4 week grid is replaced by a paper planner:
++ *   - Month view: the real month (1st to last day), days of the neighbouring
++ *     months greyed, today circled.
++ *   - Week view: 7 columns listing each day's events with times.
++ *   - Day view: one day as an agenda.
++ *   - Swipe left/right on the calendar for the next/previous month (week, day).
++ *   - Tap the title for a month/year picker. "Today" appears when away.
++ *   - Tap a day for its agenda, tap an event for its details.
++ *   - After snapBackMs without a touch it returns to this month.
++ *
++ * Rendering never goes through MagicMirror's updateDom fade: getDom() returns
++ * one persistent root and render() redraws it in place. A refresh whose
++ * events did not change does nothing at all.
++ *
++ * The node_helper (also patched) keeps the downloaded feeds and expands the
++ * date range the screen asks for (GCAL_RANGE).
++ */
+ Module.register("MMM-MyGCalendar", {
+   defaults: {
+     calendars: [],
+     updateInterval: 15 * 60 * 1000,
+     weekStartsOnMonday: false,
+-    backgroundColor: "#ffffff",
+-    pastWeekOpacity: 0.45,
+-    maxEventsPerDay: 3,
+-    fullWidth: false,
++    pastWeekOpacity: 0.55, // past days of the shown month are faded to this
+     showHeader: true,
++    defaultView: "month", // month | week | day
++    snapBackMs: 2 * 60 * 1000,
++    swipeMinDistance: 80,
+     debug: false,
+-    colorRules: [],
++    colorRules: []
+   },
+ 
+-  // Maps Google Calendar color values → hex.
+-  // Google iCal exports may use CSS names (RFC 7986), numeric IDs, or direct hex.
++  // Google Calendar color names and numeric ids, as exported in iCal.
+   GOOGLE_COLOR_MAP: {
+-    // By CSS color name
+-    tomato:    "#D50000",
+-    flamingo:  "#E67C73",
+-    tangerine: "#F4511E",
+-    banana:    "#F6BF26",
+-    sage:      "#33B679",
+-    basil:     "#0B8043",
+-    peacock:   "#039BE5",
+-    blueberry: "#3F51B5",
+-    lavender:  "#7986CB",
+-    grape:     "#8E24AA",
+-    graphite:  "#616161",
+-    // By Google Calendar numeric color ID (used in some iCal exports)
+-    "1":  "#7986CB", // Lavender
+-    "2":  "#33B679", // Sage
+-    "3":  "#8E24AA", // Grape
+-    "4":  "#E67C73", // Flamingo
+-    "5":  "#F6BF26", // Banana
+-    "6":  "#F4511E", // Tangerine
+-    "7":  "#039BE5", // Peacock
+-    "8":  "#616161", // Graphite
+-    "9":  "#3F51B5", // Blueberry
+-    "10": "#0B8043", // Basil
+-    "11": "#D50000", // Tomato
+-  },
+-
+-  events: [],
+-  loaded: false,
+-  currentDayModalDate: null,
+-
+-  start() {
+-    this._compiledColorRules = (this.config.colorRules || []).map(rule => ({
+-      ...rule,
+-      pattern: rule.keyword instanceof RegExp ? rule.keyword : new RegExp(rule.keyword, "i")
+-    }));
+-    this.sendSocketNotification("GCAL_INIT", this.config);
+-    this.scheduleMidnightRefresh();
++    tomato: "#D50000", flamingo: "#E67C73", tangerine: "#F4511E", banana: "#F6BF26",
++    sage: "#33B679", basil: "#0B8043", peacock: "#039BE5", blueberry: "#3F51B5",
++    lavender: "#7986CB", grape: "#8E24AA", graphite: "#616161",
++    1: "#7986CB", 2: "#33B679", 3: "#8E24AA", 4: "#E67C73", 5: "#F6BF26", 6: "#F4511E",
++    7: "#039BE5", 8: "#616161", 9: "#3F51B5", 10: "#0B8043", 11: "#D50000"
+   },
+ 
+   getStyles() {
+     return ["MMM-MyGCalendar.css"];
+   },
+ 
+-  socketNotificationReceived(notification, payload) {
+-    if (notification === "GCAL_EVENTS") {
+-      this.events = payload;
+-      this.loaded = true;
+-      this.updateDom(300);
+-    }
+-  },
+-
+-  scheduleMidnightRefresh() {
+-    const now = new Date();
+-    const next = new Date(now);
+-    next.setDate(next.getDate() + 1);
+-    next.setHours(0, 1, 0, 0);
+-    setTimeout(() => {
+-      this.updateDom(0);
+-      this.scheduleMidnightRefresh();
+-    }, next - now);
++  start() {
++    this.events = [];
++    this.loaded = false;
++    this.view = ["month", "week", "day"].includes(this.config.defaultView) ? this.config.defaultView : "month";
++    this.anchor = this.startOfDay(new Date());
++    this.rangeId = 0;
++    this.lastSignature = null;
++    this._compiledColorRules = (this.config.colorRules || []).map((rule) => {
++      let pattern = null;
++      try {
++        pattern = rule.keyword instanceof RegExp ? rule.keyword : new RegExp(rule.keyword, "i");
++      } catch (err) {
++        Log.warn("MMM-MyGCalendar: bad color rule '" + rule.keyword + "': " + err.message);
++      }
++      return Object.assign({}, rule, { pattern });
++    });
++    this.ranges = {}; // rangeId -> days the helper answers for (visible range + its margin)
++    this.covered = null; // days the current this.events are complete for
++    const range = this.visibleRange();
++    this.noteRange(this.rangeId, range);
++    this.sendSocketNotification("GCAL_INIT", Object.assign({}, this.config, { initialRange: { start: range.start.toISOString(), end: range.end.toISOString(), id: this.rangeId } }));
++    this.scheduleMidnightRefresh();
++    document.addEventListener("pointerdown", () => this.armSnapBack(), { capture: true, passive: true });
++    document.addEventListener("keydown", (e) => {
++      if (e.key === "Escape") {
++        this.closePicker();
++        this.hideModal();
++      }
++    });
+   },
+ 
+-  // ── Date helpers ──────────────────────────────────────────────
+-
+-  getDisplayWindow() {
+-    const today = new Date();
+-    today.setHours(0, 0, 0, 0);
+-
+-    const dow = today.getDay();
+-    const offset = this.config.weekStartsOnMonday
+-      ? dow === 0 ? 6 : dow - 1
+-      : dow;
+-
+-    const weekStart = new Date(today);
+-    weekStart.setDate(today.getDate() - offset);
++  // ── dates ─────────────────────────────────────────────────────
+ 
+-    const displayStart = new Date(weekStart);
+-    displayStart.setDate(weekStart.getDate() - 7);
+-
+-    const displayEnd = new Date(displayStart);
+-    displayEnd.setDate(displayStart.getDate() + 27);
+-
+-    return { displayStart, displayEnd, today, currentWeekStart: weekStart };
++  startOfDay(d) {
++    const out = new Date(d);
++    out.setHours(0, 0, 0, 0);
++    return out;
+   },
+ 
+-  // ── DOM builders ──────────────────────────────────────────────
++  addDays(d, n) {
++    const out = new Date(d);
++    out.setDate(out.getDate() + n);
++    return out;
++  },
+ 
+-  getDom() {
+-    const { displayStart } = this.getDisplayWindow();
++  sameDay(a, b) {
++    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
++  },
+ 
+-    const wrapper = document.createElement("div");
+-    wrapper.className = "gcal-wrapper" + (this.config.fullWidth ? " gcal-full-width" : "");
+-    wrapper.style.setProperty("--gcal-bg", this.config.backgroundColor || "#ffffff");
+-    wrapper.style.setProperty("--gcal-past-opacity", String(this.config.pastWeekOpacity ?? 0.45));
+-    wrapper.style.setProperty("--gcal-max-events", String(this.config.maxEventsPerDay ?? 3));
++  weekStartOf(d) {
++    const day = this.startOfDay(d);
++    const dow = day.getDay();
++    const back = this.config.weekStartsOnMonday ? (dow + 6) % 7 : dow;
++    return this.addDays(day, -back);
++  },
+ 
+-    if (!this.loaded) {
+-      const card = document.createElement("div");
+-      card.className = "gcal-card gcal-loading-card";
+-      card.innerHTML = '<div class="gcal-loading"><div class="gcal-spinner"></div><span>Loading calendar…</span></div>';
+-      wrapper.appendChild(card);
+-      return wrapper;
++  /** First and last+1 day drawn by the current view. */
++  visibleRange() {
++    if (this.view === "day") return { start: this.anchor, end: this.addDays(this.anchor, 1) };
++    if (this.view === "week") {
++      const start = this.weekStartOf(this.anchor);
++      return { start, end: this.addDays(start, 7) };
+     }
++    const first = new Date(this.anchor.getFullYear(), this.anchor.getMonth(), 1);
++    const start = this.weekStartOf(first);
++    const daysInMonth = new Date(this.anchor.getFullYear(), this.anchor.getMonth() + 1, 0).getDate();
++    const lead = Math.round((first - start) / 86400000);
++    const weeks = Math.ceil((lead + daysInMonth) / 7);
++    return { start, end: this.addDays(start, weeks * 7), weeks };
++  },
+ 
+-    const card = document.createElement("div");
+-    card.className = "gcal-card";
+-
+-    if (this.config.showHeader !== false) {
+-      card.appendChild(this.buildHeader(displayStart));
+-    }
+-    card.appendChild(this.buildDayHeaders());
+-    card.appendChild(this.buildGrid());
++  isShowingToday() {
++    const today = this.startOfDay(new Date());
++    const { start, end } = this.visibleRange();
++    if (this.view === "month") return this.anchor.getFullYear() === today.getFullYear() && this.anchor.getMonth() === today.getMonth();
++    return today >= start && today < end;
++  },
+ 
+-    wrapper.appendChild(card);
++  timeLabel(date, compact) {
++    const h24 = config.timeFormat === 24;
++    if (h24) return date.toLocaleTimeString(config.locale || "en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
++    if (!compact) return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
++    const h = date.getHours() % 12 || 12;
++    const m = date.getMinutes();
++    return h + (m ? ":" + String(m).padStart(2, "0") : "") + (date.getHours() < 12 ? "a" : "p");
++  },
+ 
+-    this.ensureModal();
++  // ── navigation ────────────────────────────────────────────────
+ 
+-    return wrapper;
++  setView(view, anchor) {
++    this.view = view;
++    if (anchor) this.anchor = this.startOfDay(anchor);
++    this.closePicker();
++    this.requestRange();
++    this.render();
+   },
+ 
+-  buildHeader(displayStart) {
+-    const { displayEnd } = this.getDisplayWindow();
+-    const header = document.createElement("div");
+-    header.className = "gcal-header";
+-
+-    const startLabel = displayStart.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+-    const endLabel = displayEnd.toLocaleDateString("en-US", { month: "long", year: "numeric" });
++  /** Move one month, week or day. dir = +1 or -1. */
++  step(dir) {
++    const a = new Date(this.anchor);
++    if (this.view === "month") {
++      a.setDate(1);
++      a.setMonth(a.getMonth() + dir);
++    } else {
++      a.setDate(a.getDate() + (this.view === "week" ? 7 : 1) * dir);
++    }
++    this.anchor = this.startOfDay(a);
++    this.slide = dir > 0 ? "next" : "prev";
++    this.slideUntil = Date.now() + 240;
++    this.requestRange();
++    this.render();
++  },
+ 
+-    const title = document.createElement("span");
+-    title.className = "gcal-month-title";
+-    title.textContent = startLabel === endLabel
+-      ? startLabel
+-      : `${displayStart.toLocaleDateString("en-US", { month: "long" })} – ${endLabel}`;
++  goToday() {
++    this.anchor = this.startOfDay(new Date());
++    this.requestRange();
++    this.render();
++  },
+ 
+-    header.appendChild(title);
+-    return header;
++  requestRange() {
++    this.rangeId += 1;
++    const { start, end } = this.visibleRange();
++    this.noteRange(this.rangeId, { start, end });
++    this.sendSocketNotification("GCAL_RANGE", { start: start.toISOString(), end: end.toISOString(), id: this.rangeId });
+   },
+ 
+-  buildDayHeaders() {
+-    const days = this.config.weekStartsOnMonday
+-      ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+-      : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
++  /** The helper answers with six weeks of margin around what is drawn (see node_helper parseRange). */
++  noteRange(id, { start, end }) {
++    this.ranges[id] = { start: this.addDays(start, -42), end: this.addDays(end, 42) };
++  },
+ 
+-    const row = document.createElement("div");
+-    row.className = "gcal-day-headers";
+-    days.forEach((d) => {
+-      const cell = document.createElement("div");
+-      cell.className = "gcal-day-header";
+-      cell.textContent = d;
+-      row.appendChild(cell);
+-    });
+-    return row;
++  /** True when this.events are complete for what the view draws, so "Nothing planned" is the truth. */
++  isCovered() {
++    if (!this.covered) return false;
++    const { start, end } = this.visibleRange();
++    return start >= this.covered.start && end <= this.covered.end;
+   },
+ 
+-  buildGrid() {
+-    const { displayStart, today, currentWeekStart } = this.getDisplayWindow();
+-    const grid = document.createElement("div");
+-    grid.className = "gcal-grid";
++  emptyText() {
++    return this.isCovered() ? "Nothing planned." : "Loading\u2026";
++  },
+ 
+-    for (let w = 0; w < 4; w++) {
+-      const row = document.createElement("div");
+-      row.className = "gcal-week";
++  armSnapBack() {
++    clearTimeout(this.snapTimer);
++    const ms = Number(this.config.snapBackMs);
++    if (!(ms > 0)) return;
++    this.snapTimer = setTimeout(() => {
++      const home = this.config.defaultView || "month";
++      if (this.view === home && this.isShowingToday()) return;
++      this.hideModal();
++      this.closePicker();
++      this.view = home;
++      this.goToday();
++    }, ms);
++  },
+ 
+-      const weekDates = [];
+-      for (let d = 0; d < 7; d++) {
+-        const date = new Date(displayStart);
+-        date.setDate(displayStart.getDate() + w * 7 + d);
+-        weekDates.push(date);
+-      }
++  scheduleMidnightRefresh() {
++    const now = new Date();
++    const next = this.addDays(this.startOfDay(now), 1);
++    next.setMinutes(1);
++    setTimeout(() => {
++      // Follow today across midnight unless someone is browsing elsewhere.
++      const wasToday = this.sameDay(this.anchor, this.addDays(new Date(), -1));
++      if (wasToday) this.anchor = this.startOfDay(new Date());
++      this.requestRange();
++      this.render();
++      this.scheduleMidnightRefresh();
++    }, next - now);
++  },
+ 
+-      // Multi-day (all-day) events get a lane reserved across every day they
+-      // touch in this row, so they render as one connected bar instead of
+-      // separate chips. Only connects within a single week row.
+-      const rowSpans = this.getRowSpanInfo(weekDates);
+-      const excluded = new Set(rowSpans.map((r) => r.ev));
+-
+-      weekDates.forEach((date, d) => {
+-        const isToday = date.toDateString() === today.toDateString();
+-        const isPast = date < currentWeekStart;
+-
+-        const max = this.config.maxEventsPerDay ?? 3;
+-        const spanSlots = new Array(max).fill(null);
+-        rowSpans.forEach((r) => {
+-          if (d >= r.startCol && d <= r.endCol) {
+-            spanSlots[r.lane] = { ev: r.ev, isStart: d === r.startCol, isEnd: d === r.endCol };
+-          }
+-        });
+-
+-        row.appendChild(this.buildDay(date, isToday, isPast, spanSlots, excluded));
+-      });
++  // ── socket ────────────────────────────────────────────────────
+ 
+-      grid.appendChild(row);
++  socketNotificationReceived(notification, payload) {
++    if (notification !== "GCAL_EVENTS") return;
++    const events = Array.isArray(payload) ? payload : payload.events;
++    // Answers for a range we already left are dropped.
++    if (!Array.isArray(payload) && payload.rangeId !== this.rangeId) return;
++    this.covered = this.ranges[this.rangeId] || null;
++    // A refresh that changed nothing must not touch the screen.
++    const signature = JSON.stringify(events);
++    if (signature === this.lastSignature && this.loaded) return;
++    this.lastSignature = signature;
++    this.events = events;
++    this.loaded = true;
++    // Let a swipe's slide finish before redrawing with the new events.
++    const wait = (this.slideUntil || 0) - Date.now();
++    if (wait > 0) {
++      clearTimeout(this.renderTimer);
++      this.renderTimer = setTimeout(() => this.render(), wait);
++    } else {
++      this.render();
+     }
+-
+-    return grid;
++    // Keep an open day agenda in sync with the new data.
++    if (this.modalDate && this.modalMode === "day") this.showDayModal(this.modalDate);
+   },
+ 
+-  // Assigns each multi-day all-day event touching this row to a lane (0-based),
+-  // greedily packing non-overlapping events into the same lane. Events that
+-  // don't fit within maxEventsPerDay lanes are left unplaced and fall back to
+-  // normal per-day chip rendering.
+-  getRowSpanInfo(weekDates) {
+-    const max = this.config.maxEventsPerDay ?? 3;
+-    const rowStart = new Date(weekDates[0]);
+-    rowStart.setHours(0, 0, 0, 0);
+-    const rowEnd = new Date(weekDates[6]);
+-    rowEnd.setHours(0, 0, 0, 0);
+-    rowEnd.setDate(rowEnd.getDate() + 1);
++  // ── DOM ───────────────────────────────────────────────────────
+ 
+-    const dayMs = 24 * 60 * 60 * 1000;
+-    const candidates = [];
+-
+-    this.events.forEach((ev) => {
+-      if (!ev.allDay) return;
+-
+-      const s = new Date(ev.start);
+-      s.setHours(0, 0, 0, 0);
+-      const e = new Date(ev.end);
+-      e.setHours(0, 0, 0, 0);
+-
+-      if (e - s <= dayMs) return; // single-day event
+-      if (s >= rowEnd || e <= rowStart) return; // doesn't touch this row
+-
+-      const effStart = s < rowStart ? rowStart : s;
+-      const effEnd = e > rowEnd ? rowEnd : e;
++  getDom() {
++    if (!this.root) {
++      this.root = document.createElement("div");
++      this.root.className = "gcal-wrapper";
++      this.bindSwipe(this.root);
++    }
++    this.render();
++    return this.root;
++  },
+ 
+-      const startCol = Math.round((effStart - rowStart) / dayMs);
+-      const endCol = Math.round((effEnd - rowStart) / dayMs) - 1;
++  render() {
++    if (!this.root) return;
++    this.root.style.setProperty("--gcal-past-opacity", String(this.config.pastWeekOpacity ?? 0.55));
++    const card = document.createElement("div");
++    card.className = "gcal-card gcal-view-" + this.view;
++    if (this.config.showHeader !== false) card.appendChild(this.buildHeader());
+ 
+-      if (endCol - startCol < 1) return; // clipped to a single day in this row
++    const body = document.createElement("div");
++    body.className = "gcal-body";
++    if (this.slide) {
++      body.classList.add("gcal-slide-" + this.slide);
++      this.slide = null;
++    }
++    if (!this.loaded) {
++      const wait = document.createElement("div");
++      wait.className = "gcal-loading";
++      wait.textContent = "Loading calendar…";
++      body.appendChild(wait);
++    } else if (this.view === "month") {
++      body.appendChild(this.buildMonth());
++    } else if (this.view === "week") {
++      body.appendChild(this.buildWeek());
++    } else {
++      body.appendChild(this.buildDay());
++    }
++    card.appendChild(body);
++    this.root.replaceChildren(card);
++    if (this.loaded && this.view === "month") requestAnimationFrame(() => this.fitMonthCells(body));
++  },
+ 
+-      candidates.push({ ev, startCol, endCol });
++  buildHeader() {
++    const header = document.createElement("div");
++    header.className = "gcal-header";
++    const a = this.anchor;
++    let text;
++    if (this.view === "month") {
++      text = a.toLocaleDateString("en-US", { month: "long", year: "numeric" });
++    } else if (this.view === "week") {
++      const { start } = this.visibleRange();
++      const end = this.addDays(start, 6);
++      const sameMonth = start.getMonth() === end.getMonth();
++      text = start.toLocaleDateString("en-US", { month: "long", day: "numeric" }) + " – " +
++        end.toLocaleDateString("en-US", sameMonth ? { day: "numeric" } : { month: "long", day: "numeric" }) + ", " + end.getFullYear();
++    } else {
++      text = a.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
++    }
++    const title = document.createElement("button");
++    title.type = "button";
++    title.className = "gcal-title";
++    title.setAttribute("aria-label", text + ". Tap to pick a month.");
++    const titleText = document.createElement("span");
++    titleText.textContent = text;
++    const caret = document.createElement("span");
++    caret.className = "gcal-caret";
++    caret.textContent = "▾";
++    title.append(titleText, caret);
++    title.addEventListener("click", (e) => {
++      e.stopPropagation();
++      this.openPicker();
+     });
++    header.appendChild(title);
+ 
+-    candidates.sort((a, b) => a.startCol - b.startCol || (b.endCol - b.startCol) - (a.endCol - a.startCol));
+-
+-    const lanes = [];
+-    const placed = [];
++    if (!this.isShowingToday()) {
++      header.appendChild(this.pillButton("Today", () => this.goToday(), "gcal-today"));
++    }
+ 
+-    candidates.forEach((c) => {
+-      let lane = 0;
+-      while (lane < max) {
+-        const conflicts = (lanes[lane] || []).some((iv) => c.startCol <= iv.endCol && c.endCol >= iv.startCol);
+-        if (!conflicts) break;
+-        lane++;
+-      }
+-      if (lane >= max) return; // no free lane — falls back to a normal chip
++    const views = document.createElement("div");
++    views.className = "gcal-views";
++    for (const [id, label] of [["month", "Month"], ["week", "Week"], ["day", "Day"]]) {
++      const b = this.pillButton(label, () => this.setView(id), id === this.view ? "gcal-view-on" : "");
++      b.setAttribute("aria-pressed", String(id === this.view));
++      views.appendChild(b);
++    }
++    header.appendChild(views);
++    return header;
++  },
+ 
+-      lanes[lane] = lanes[lane] || [];
+-      lanes[lane].push({ startCol: c.startCol, endCol: c.endCol });
+-      placed.push({ ev: c.ev, startCol: c.startCol, endCol: c.endCol, lane });
++  pillButton(text, onTap, extraClass) {
++    const b = document.createElement("button");
++    b.type = "button";
++    b.className = "gcal-pill" + (extraClass ? " " + extraClass : "");
++    b.textContent = text;
++    b.addEventListener("click", (e) => {
++      e.stopPropagation();
++      onTap();
+     });
++    return b;
++  },
+ 
+-    return placed;
++  weekdayNames() {
++    const base = this.weekStartOf(new Date());
++    return Array.from({ length: 7 }, (_, i) => this.addDays(base, i).toLocaleDateString("en-US", { weekday: "short" }));
+   },
+ 
+-  buildDay(date, isToday, isPast, spanSlots, excludedSpanEvents) {
+-    const cell = document.createElement("div");
+-    let cls = "gcal-day";
+-    if (isToday) cls += " gcal-today";
+-    if (isPast) cls += " gcal-past";
+-    cell.className = cls;
+-
+-    const topRow = document.createElement("div");
+-    topRow.className = "gcal-day-top-row";
+-
+-    const numWrap = document.createElement("div");
+-    numWrap.className = "gcal-day-num-wrap";
+-
+-    if (date.getDate() === 1) {
+-      const monthTag = document.createElement("span");
+-      monthTag.className = "gcal-day-month-tag";
+-      monthTag.textContent = date.toLocaleDateString("en-US", { month: "short" });
+-      numWrap.appendChild(monthTag);
++  // ── month ─────────────────────────────────────────────────────
++
++  buildMonth() {
++    const { start, weeks } = this.visibleRange();
++    const today = this.startOfDay(new Date());
++    const month = this.anchor.getMonth();
++    const wrap = document.createElement("div");
++    wrap.className = "gcal-month";
++
++    const head = document.createElement("div");
++    head.className = "gcal-dow";
++    for (const name of this.weekdayNames()) {
++      const c = document.createElement("div");
++      c.textContent = name;
++      head.appendChild(c);
+     }
++    wrap.appendChild(head);
+ 
+-    const num = document.createElement("span");
+-    num.className = "gcal-day-number";
+-    num.textContent = date.getDate();
+-    numWrap.appendChild(num);
+-
+-    // Click the date number → day modal
+-    numWrap.addEventListener("click", (e) => {
+-      e.stopPropagation();
+-      this.showDayModal(new Date(date));
+-    });
+-
+-    topRow.appendChild(numWrap);
+-
+-    const eventsForDay = this.getEventsForDay(date);
+-    const max = this.config.maxEventsPerDay ?? 3;
++    const grid = document.createElement("div");
++    grid.className = "gcal-month-grid";
++    grid.style.setProperty("--gcal-weeks", String(weeks));
++    for (let w = 0; w < weeks; w++) {
++      const weekStart = this.addDays(start, w * 7);
++      const slots = this.spanSlots(weekStart);
++      for (let i = 0; i < 7; i++) {
++        const date = this.addDays(weekStart, i);
++        grid.appendChild(this.buildMonthCell(date, date.getMonth() !== month, this.sameDay(date, today), date < today, slots));
++      }
++    }
++    wrap.appendChild(grid);
++    return wrap;
++  },
+ 
+-    if (eventsForDay.length > max) {
+-      const badge = document.createElement("div");
+-      badge.className = "gcal-day-more-badge";
+-      badge.textContent = `+${eventsForDay.length - max}`;
+-      // Clicking the overflow badge also opens the day modal
+-      badge.addEventListener("click", (e) => {
+-        e.stopPropagation();
+-        this.showDayModal(new Date(date));
+-      });
+-      topRow.appendChild(badge);
++  /** Multi day all day events get the same line in every day of a week row. */
++  spanSlots(weekStart) {
++    const weekEnd = this.addDays(weekStart, 7);
++    const spans = this.events.filter((ev) => {
++      if (!this.isMultiDay(ev)) return false;
++      const { s, e } = this.dayBounds(ev);
++      return s < weekEnd && e > weekStart;
++    }).sort((a, b) => new Date(a.start) - new Date(b.start) || new Date(b.end) - new Date(a.end));
++    const lanes = []; // lanes[i] = end date of the last event placed in lane i
++    const slotOf = new Map();
++    for (const ev of spans) {
++      const { s, e } = this.dayBounds(ev);
++      let lane = lanes.findIndex((end) => end <= s);
++      if (lane === -1) lane = lanes.length;
++      lanes[lane] = e;
++      slotOf.set(ev.id, lane);
+     }
++    return { slotOf, count: lanes.length };
++  },
+ 
+-    cell.appendChild(topRow);
++  isMultiDay(ev) {
++    const { s, e } = this.dayBounds(ev);
++    return (e - s) / 86400000 > 1.01;
++  },
+ 
+-    const eventsWrap = document.createElement("div");
+-    eventsWrap.className = "gcal-day-events";
++  /** Whole-day bounds of an event: [first day, day after the last day). */
++  dayBounds(ev) {
++    const start = new Date(ev.start);
++    const end = new Date(ev.end);
++    const s = this.startOfDay(start);
++    let e = this.startOfDay(end);
++    if (!ev.allDay && end > e) e = this.addDays(e, 1);
++    if (e <= s) e = this.addDays(s, 1);
++    return { s, e };
++  },
+ 
+-    const slots = spanSlots ? spanSlots.slice() : new Array(max).fill(null);
+-    const singleEvents = eventsForDay.filter((ev) => !excludedSpanEvents || !excludedSpanEvents.has(ev));
++  buildMonthCell(date, otherMonth, isToday, isPast, slots) {
++    const cell = document.createElement("div");
++    cell.className = "gcal-cell" + (otherMonth ? " gcal-other" : "") + (isToday ? " gcal-today-cell" : "") + (isPast && !isToday ? " gcal-past" : "");
++    cell.addEventListener("click", () => {
++      if (this.swallowClick) return;
++      this.showDayModal(date);
++    });
+ 
+-    let si = 0;
+-    for (let i = 0; i < slots.length; i++) {
+-      if (slots[i]) continue;
+-      if (si < singleEvents.length) {
+-        slots[i] = { single: singleEvents[si] };
+-        si++;
+-      }
++    const num = document.createElement("div");
++    num.className = "gcal-num";
++    num.textContent = date.getDate() === 1 && otherMonth
++      ? date.toLocaleDateString("en-US", { month: "short" }) + " 1"
++      : String(date.getDate());
++    cell.appendChild(num);
++
++    const list = document.createElement("div");
++    list.className = "gcal-lines";
++    const events = this.getEventsForDay(date);
++    const lanes = new Array(slots.count).fill(null);
++    const rest = [];
++    for (const ev of events) {
++      if (slots.slotOf.has(ev.id)) lanes[slots.slotOf.get(ev.id)] = ev;
++      else rest.push(ev);
+     }
+-
+-    slots.forEach((slot) => {
+-      if (!slot) return;
+-      if (slot.single) {
+-        eventsWrap.appendChild(this.buildEventChip(slot.single));
+-      } else {
+-        eventsWrap.appendChild(this.buildSpanChip(slot.ev, slot.isStart, slot.isEnd));
+-      }
++    // Lanes are only kept up to the last lane used today, so empty days stay clean.
++    let lastLane = -1;
++    lanes.forEach((ev, i) => {
++      if (ev) lastLane = i;
+     });
++    for (let i = 0; i <= lastLane; i++) {
++      list.appendChild(lanes[i] ? this.bandLine(lanes[i], date) : this.spacerLine());
++    }
++    for (const ev of rest) list.appendChild(ev.allDay ? this.bandLine(ev, date) : this.timedLine(ev));
++    cell.appendChild(list);
+ 
+-    cell.appendChild(eventsWrap);
+-
++    const more = document.createElement("div");
++    more.className = "gcal-more";
++    cell.appendChild(more);
+     return cell;
+   },
+ 
+-  buildEventChip(ev) {
+-    const chip = document.createElement("div");
+-    chip.className = "gcal-event";
+-
+-    const color = this.getEventColor(ev);
++  /** Hide the lines that do not fit a month cell and say "+N more". */
++  fitMonthCells(scope) {
++    const overflows = (list) => Array.from(list.children).filter((line) => line.offsetTop + line.offsetHeight > list.clientHeight + 1);
++    for (const cell of scope.querySelectorAll(".gcal-cell")) {
++      const list = cell.querySelector(".gcal-lines");
++      const more = cell.querySelector(".gcal-more");
++      if (!overflows(list).length) continue;
++      // Show the "+N more" line first, so the list is measured with its final height.
++      more.textContent = "+0 more";
++      const hidden = overflows(list);
++      for (const line of hidden) line.classList.add("gcal-hidden");
++      const count = hidden.filter((l) => !l.classList.contains("gcal-spacer")).length;
++      more.textContent = count ? "+" + count + " more" : "";
++    }
++  },
+ 
+-    const dot = document.createElement("span");
+-    dot.className = "gcal-event-dot";
+-    dot.style.backgroundColor = color;
++  bandLine(ev, date) {
++    const line = document.createElement("div");
++    const { s, e } = this.dayBounds(ev);
++    const first = this.sameDay(s, date) || date.getDay() === this.weekStartOf(date).getDay();
++    const last = this.sameDay(this.addDays(e, -1), date);
++    line.className = "gcal-line gcal-band" + (this.sameDay(s, date) ? " gcal-band-start" : "") + (last ? " gcal-band-end" : "");
++    line.style.setProperty("--ev-color", this.getEventColor(ev));
++    line.textContent = first ? ev.title : " ";
++    if (!first) line.setAttribute("aria-label", ev.title);
++    return line;
++  },
+ 
+-    const label = document.createElement("span");
+-    label.className = "gcal-event-label";
+-    label.textContent = ev.title;
++  timedLine(ev) {
++    const line = document.createElement("div");
++    line.className = "gcal-line gcal-timed";
++    line.style.setProperty("--ev-color", this.getEventColor(ev));
++    const time = document.createElement("span");
++    time.className = "gcal-time";
++    time.textContent = this.timeLabel(new Date(ev.start), true);
++    const title = document.createElement("span");
++    title.className = "gcal-line-title";
++    title.textContent = ev.title;
++    line.append(time, title);
++    return line;
++  },
+ 
+-    chip.appendChild(dot);
+-    chip.appendChild(label);
++  spacerLine() {
++    const s = document.createElement("div");
++    s.className = "gcal-line gcal-spacer";
++    s.textContent = " ";
++    return s;
++  },
+ 
+-    chip.style.setProperty("--ev-color", color);
+-    chip.title = ev.title;
++  // ── week ──────────────────────────────────────────────────────
++
++  buildWeek() {
++    const { start } = this.visibleRange();
++    const today = this.startOfDay(new Date());
++    const wrap = document.createElement("div");
++    wrap.className = "gcal-week";
++    for (let i = 0; i < 7; i++) {
++      const date = this.addDays(start, i);
++      const col = document.createElement("div");
++      col.className = "gcal-col" + (this.sameDay(date, today) ? " gcal-today-cell" : "") + (date < today && !this.sameDay(date, today) ? " gcal-past" : "");
++      const head = document.createElement("button");
++      head.type = "button";
++      head.className = "gcal-col-head";
++      const dow = document.createElement("span");
++      dow.className = "gcal-col-dow";
++      dow.textContent = date.toLocaleDateString("en-US", { weekday: "short" });
++      const num = document.createElement("span");
++      num.className = "gcal-num";
++      num.textContent = String(date.getDate());
++      head.append(dow, num);
++      head.addEventListener("click", () => {
++        if (!this.swallowClick) this.setView("day", date);
++      });
++      col.appendChild(head);
++
++      const list = document.createElement("div");
++      list.className = "gcal-col-list";
++      const events = this.getEventsForDay(date);
++      if (!events.length) {
++        const none = document.createElement("div");
++        none.className = "gcal-empty";
++        none.textContent = "\u2013";
++        list.appendChild(none);
++      }
++      for (const ev of events) list.appendChild(this.entry(ev, date, false));
++      col.appendChild(list);
++      wrap.appendChild(col);
++    }
++    return wrap;
++  },
+ 
+-    chip.addEventListener("click", (e) => {
++  /** An event as a block: time, title, place. Used by week, day and the agenda popup. */
++  entry(ev, date, roomy) {
++    const item = document.createElement("button");
++    item.type = "button";
++    item.className = "gcal-entry" + (ev.allDay ? " gcal-entry-allday" : "") + (roomy ? " gcal-entry-roomy" : "");
++    item.style.setProperty("--ev-color", this.getEventColor(ev));
++    const time = document.createElement("span");
++    time.className = "gcal-entry-time";
++    if (ev.allDay) {
++      time.textContent = "All day";
++    } else {
++      const s = new Date(ev.start);
++      const e = new Date(ev.end);
++      time.textContent = this.sameDay(s, date) ? this.timeLabel(s) + (roomy ? " – " + this.timeLabel(e) : "") : "until " + this.timeLabel(e);
++    }
++    const title = document.createElement("span");
++    title.className = "gcal-entry-title";
++    title.textContent = ev.title;
++    item.append(time, title);
++    if (ev.location) {
++      const loc = document.createElement("span");
++      loc.className = "gcal-entry-place";
++      loc.textContent = ev.location;
++      item.appendChild(loc);
++    }
++    if (roomy) {
++      const cal = document.createElement("span");
++      cal.className = "gcal-entry-cal";
++      cal.textContent = ev.calendarName;
++      item.appendChild(cal);
++    }
++    item.addEventListener("click", (e) => {
+       e.stopPropagation();
+-      this.showModal(ev, null);
++      if (!this.swallowClick) this.showModal(ev, date);
+     });
+-
+-    return chip;
++    return item;
+   },
+ 
+-  // Renders one day's segment of a multi-day all-day event as a connected bar.
+-  // Only the first day's segment (isStart) shows the title; the rest continue
+-  // the color across the row with no rounded corners on the joining side(s).
+-  buildSpanChip(ev, isStart, isEnd) {
+-    const chip = document.createElement("div");
+-    chip.className = "gcal-event gcal-event-span";
+-    if (isStart) chip.classList.add("gcal-event-span--start");
+-    if (isEnd) chip.classList.add("gcal-event-span--end");
+-
+-    const color = this.getEventColor(ev);
+-    chip.style.setProperty("--ev-color", color);
+-    chip.title = ev.title;
+-
+-    if (isStart) {
+-      const label = document.createElement("span");
+-      label.className = "gcal-event-label";
+-      label.textContent = ev.title;
+-      chip.appendChild(label);
++  // ── day ───────────────────────────────────────────────────────
++
++  buildDay() {
++    const date = this.anchor;
++    const wrap = document.createElement("div");
++    wrap.className = "gcal-day";
++    const events = this.getEventsForDay(date);
++    if (!events.length) {
++      const none = document.createElement("div");
++      none.className = "gcal-empty gcal-empty-big";
++      none.textContent = this.emptyText();
++      wrap.appendChild(none);
+     }
++    for (const ev of events) wrap.appendChild(this.entry(ev, date, true));
++    return wrap;
++  },
+ 
+-    chip.addEventListener("click", (e) => {
+-      e.stopPropagation();
+-      this.showModal(ev, null);
+-    });
+-
+-    return chip;
++  // ── swipe ─────────────────────────────────────────────────────
++
++  bindSwipe(el) {
++    let start = null;
++    el.addEventListener("pointerdown", (ev) => {
++      if (ev.pointerType === "mouse" && ev.button !== 0) return;
++      start = { x: ev.clientX, y: ev.clientY, t: Date.now(), id: ev.pointerId };
++    }, { passive: true });
++    el.addEventListener("pointerup", (ev) => {
++      if (!start || ev.pointerId !== start.id) return;
++      const dx = ev.clientX - start.x;
++      const dy = Math.abs(ev.clientY - start.y);
++      const dt = Date.now() - start.t;
++      start = null;
++      if (Math.abs(dx) < this.config.swipeMinDistance || dy > Math.abs(dx) * 0.7 || dt > 800) return;
++      // The click that follows this pointerup must not open a day.
++      this.swallowClick = true;
++      setTimeout(() => {
++        this.swallowClick = false;
++      }, 50);
++      this.step(dx < 0 ? 1 : -1);
++    }, { passive: true });
++    el.addEventListener("pointercancel", () => {
++      start = null;
++    }, { passive: true });
+   },
+ 
+-  getEventsForDay(date) {
+-    const d = new Date(date);
+-    d.setHours(0, 0, 0, 0);
+-    const next = new Date(d);
+-    next.setDate(d.getDate() + 1);
++  // ── events ────────────────────────────────────────────────────
+ 
++  getEventsForDay(date) {
++    const d = this.startOfDay(date);
++    const next = this.addDays(d, 1);
+     return this.events.filter((ev) => {
+-      const start = new Date(ev.start);
+-      const end = new Date(ev.end);
+-
+       if (ev.allDay) {
+-        const s = new Date(start); s.setHours(0, 0, 0, 0);
+-        const e = new Date(end); e.setHours(0, 0, 0, 0);
++        const { s, e } = this.dayBounds(ev);
+         return d >= s && d < e;
+       }
+-
+-      return start < next && end > d;
++      return new Date(ev.start) < next && new Date(ev.end) > d;
+     }).sort((a, b) => {
+-      if (a.allDay && !b.allDay) return -1;
+-      if (!a.allDay && b.allDay) return 1;
++      if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
+       return new Date(a.start) - new Date(b.start);
+     });
+   },
+ 
+-  // ── Modal infrastructure ──────────────────────────────────────
++  getEventColor(ev) {
++    if (ev.eventColor) {
++      const key = ev.eventColor.toLowerCase().trim();
++      return this.GOOGLE_COLOR_MAP[key] || ev.eventColor;
++    }
++    for (const rule of this._compiledColorRules || []) {
++      if (rule.pattern && rule.color && rule.pattern.test(ev.title)) return rule.color;
++    }
++    return ev.calendarColor || "#4285F4";
++  },
++
++  // ── month / year picker ───────────────────────────────────────
++
++  openPicker() {
++    this.closePicker();
++    this.pickerYear = this.anchor.getFullYear();
++    const overlay = document.createElement("div");
++    overlay.className = "gcal-picker-backdrop";
++    overlay.id = this.identifier + "_picker";
++    overlay.addEventListener("click", (e) => {
++      if (e.target === overlay) this.closePicker();
++    });
++    const box = document.createElement("div");
++    box.className = "gcal-picker";
++    overlay.appendChild(box);
++    document.body.appendChild(overlay);
++    this.renderPicker(box);
++  },
++
++  renderPicker(box) {
++    box.replaceChildren();
++    const now = new Date();
++    const years = document.createElement("div");
++    years.className = "gcal-picker-years";
++    for (let y = now.getFullYear() - 2; y <= now.getFullYear() + 3; y++) {
++      const b = this.pillButton(String(y), () => {
++        this.pickerYear = y;
++        this.renderPicker(box);
++      }, y === this.pickerYear ? "gcal-view-on" : "");
++      years.appendChild(b);
++    }
++    const months = document.createElement("div");
++    months.className = "gcal-picker-months";
++    for (let m = 0; m < 12; m++) {
++      const label = new Date(2000, m, 1).toLocaleDateString("en-US", { month: "short" });
++      const current = this.pickerYear === this.anchor.getFullYear() && m === this.anchor.getMonth();
++      const isNow = this.pickerYear === now.getFullYear() && m === now.getMonth();
++      months.appendChild(this.pillButton(label, () => {
++        this.closePicker();
++        this.setView("month", new Date(this.pickerYear, m, 1));
++      }, (current ? "gcal-view-on" : "") + (isNow ? " gcal-picker-now" : "")));
++    }
++    const actions = document.createElement("div");
++    actions.className = "gcal-picker-actions";
++    actions.append(
++      this.pillButton("This month", () => {
++        this.closePicker();
++        this.view = "month";
++        this.goToday();
++      }),
++      this.pillButton("Close", () => this.closePicker())
++    );
++    box.append(years, months, actions);
++  },
++
++  closePicker() {
++    const el = document.getElementById(this.identifier + "_picker");
++    if (el) el.remove();
++  },
++
++  // ── popups: day agenda and event details ─────────────────────
+ 
+   ensureModal() {
+     const id = this.identifier + "_backdrop";
+-    if (!document.getElementById(id)) {
+-      const backdrop = document.createElement("div");
++    let backdrop = document.getElementById(id);
++    if (!backdrop) {
++      backdrop = document.createElement("div");
+       backdrop.className = "gcal-modal-backdrop";
+       backdrop.id = id;
+       backdrop.addEventListener("click", (e) => {
+         if (e.target === backdrop) this.hideModal();
+       });
+-
+       const modal = document.createElement("div");
+       modal.className = "gcal-modal";
+       modal.id = this.identifier + "_modal";
+       backdrop.appendChild(modal);
+-
+       document.body.appendChild(backdrop);
+-
+-      document.addEventListener("keydown", (e) => {
+-        if (e.key === "Escape") this.hideModal();
+-      });
+     }
++    return { backdrop, modal: document.getElementById(this.identifier + "_modal") };
+   },
+ 
+   hideModal() {
+     const backdrop = document.getElementById(this.identifier + "_backdrop");
+     if (backdrop) backdrop.classList.remove("gcal-visible");
++    this.modalDate = null;
++    this.modalMode = null;
+   },
+ 
+-  // ── Day modal ─────────────────────────────────────────────────
++  modalHeader(titleText, subtitleText, onBack) {
++    const header = document.createElement("div");
++    header.className = "gcal-modal-header";
++    if (onBack) header.appendChild(this.pillButton("← Back", onBack, "gcal-modal-back"));
++    const titles = document.createElement("div");
++    titles.className = "gcal-modal-titles";
++    const t = document.createElement("h3");
++    t.className = "gcal-modal-title";
++    t.textContent = titleText;
++    titles.appendChild(t);
++    if (subtitleText) {
++      const s = document.createElement("div");
++      s.className = "gcal-modal-subtitle";
++      s.textContent = subtitleText;
++      titles.appendChild(s);
++    }
++    header.appendChild(titles);
++    header.appendChild(this.pillButton("Close", () => this.hideModal(), "gcal-modal-close"));
++    return header;
++  },
+ 
+   showDayModal(date) {
+-    this.ensureModal();
+-    this.currentDayModalDate = date;
+-
+-    const backdrop = document.getElementById(this.identifier + "_backdrop");
+-    const modal = document.getElementById(this.identifier + "_modal");
+-    if (!backdrop || !modal) return;
+-
+-    modal.innerHTML = "";
++    const { backdrop, modal } = this.ensureModal();
++    this.modalDate = date;
++    this.modalMode = "day";
++    const events = this.getEventsForDay(date);
++    modal.replaceChildren();
+     modal.scrollTop = 0;
+-
+-    const eventsForDay = this.getEventsForDay(date);
+-    const count = eventsForDay.length;
+-
+-    // ── Header ──
+-    const header = document.createElement("div");
+-    header.className = "gcal-modal-header gcal-modal-header--day";
+-
+-    const headerContent = document.createElement("div");
+-    headerContent.className = "gcal-modal-header-content";
+-
+-    const titleEl = document.createElement("h3");
+-    titleEl.className = "gcal-modal-title";
+-    titleEl.textContent = date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+-
+-    const subtitle = document.createElement("span");
+-    subtitle.className = "gcal-modal-subtitle";
+-    subtitle.textContent = count === 0 ? "No events" : count === 1 ? "1 event" : `${count} events`;
+-
+-    headerContent.appendChild(titleEl);
+-    headerContent.appendChild(subtitle);
+-
+-    const closeBtn = document.createElement("button");
+-    closeBtn.className = "gcal-modal-close";
+-    closeBtn.setAttribute("aria-label", "Close");
+-    closeBtn.innerHTML = "&#10005;";
+-    closeBtn.addEventListener("click", () => this.hideModal());
+-
+-    header.appendChild(headerContent);
+-    header.appendChild(closeBtn);
+-    modal.appendChild(header);
+-
+-    // ── Body ──
++    modal.appendChild(this.modalHeader(
++      date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }),
++      events.length === 0 ? (this.isCovered() ? "Nothing planned" : "Loading\u2026") : events.length === 1 ? "1 event" : events.length + " events"
++    ));
+     const body = document.createElement("div");
+-    body.className = "gcal-modal-body gcal-day-modal-body";
+-
+-    if (count === 0) {
+-      const empty = document.createElement("div");
+-      empty.className = "gcal-day-modal-empty";
+-      empty.textContent = "Nothing scheduled for this day.";
+-      body.appendChild(empty);
+-    } else {
+-      eventsForDay.forEach((ev) => {
+-        body.appendChild(this.buildDayEventItem(ev, date));
+-      });
++    body.className = "gcal-modal-body";
++    for (const ev of events) body.appendChild(this.entry(ev, date, true));
++    if (!events.length) {
++      const none = document.createElement("div");
++      none.className = "gcal-empty gcal-empty-big";
++      none.textContent = this.emptyText();
++      body.appendChild(none);
+     }
+-
+     modal.appendChild(body);
++    const foot = document.createElement("div");
++    foot.className = "gcal-modal-foot";
++    foot.appendChild(this.pillButton("Open day view", () => {
++      this.hideModal();
++      this.setView("day", date);
++    }));
++    modal.appendChild(foot);
+     backdrop.classList.add("gcal-visible");
+   },
+ 
+-  buildDayEventItem(ev, date) {
+-    const item = document.createElement("div");
+-    item.className = "gcal-day-event-item";
+-    item.style.setProperty("--ev-color", this.getEventColor(ev));
+-
+-    const colorBar = document.createElement("div");
+-    colorBar.className = "gcal-day-event-bar";
+-
+-    const content = document.createElement("div");
+-    content.className = "gcal-day-event-content";
+-
+-    const start = new Date(ev.start);
+-    const end = new Date(ev.end);
+-
+-    const timeStr = ev.allDay
+-      ? "All day"
+-      : `${start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })} – ${end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
+-
+-    const time = document.createElement("span");
+-    time.className = "gcal-day-event-time";
+-    time.textContent = timeStr;
+-
+-    const title = document.createElement("span");
+-    title.className = "gcal-day-event-title";
+-    title.textContent = ev.title;
+-
+-    content.appendChild(time);
+-    content.appendChild(title);
+-
+-    if (ev.location) {
+-      const loc = document.createElement("span");
+-      loc.className = "gcal-day-event-loc";
+-      loc.textContent = ev.location;
+-      content.appendChild(loc);
+-    }
+-
+-    const calBadge = document.createElement("span");
+-    calBadge.className = "gcal-day-event-cal";
+-    calBadge.textContent = ev.calendarName;
+-    calBadge.style.color = ev.calendarColor;
+-    content.appendChild(calBadge);
+-
+-    item.appendChild(colorBar);
+-    item.appendChild(content);
+-
+-    // Click → open full event detail (with back button)
+-    item.addEventListener("click", () => {
+-      this.showModal(ev, date);
+-    });
+-
+-    return item;
+-  },
+-
+-  // ── Event detail modal ────────────────────────────────────────
+-
+   showModal(ev, fromDate) {
+-    this.ensureModal();
+-    const backdrop = document.getElementById(this.identifier + "_backdrop");
+-    const modal = document.getElementById(this.identifier + "_modal");
+-    if (!backdrop || !modal) return;
+-
+-    modal.innerHTML = "";
++    const { backdrop, modal } = this.ensureModal();
++    this.modalMode = "event";
++    modal.replaceChildren();
+     modal.scrollTop = 0;
+-
+-    const color = this.getEventColor(ev);
+-
+-    // ── Header ──
+-    const header = document.createElement("div");
+-    header.className = "gcal-modal-header";
+-    header.style.background = this.colorGradient(color);
+-
+-    const headerContent = document.createElement("div");
+-    headerContent.className = "gcal-modal-header-content";
+-
+-    const titleEl = document.createElement("h3");
+-    titleEl.className = "gcal-modal-title";
+-    titleEl.textContent = ev.title;
+-    headerContent.appendChild(titleEl);
+-
+-    const btnGroup = document.createElement("div");
+-    btnGroup.className = "gcal-modal-btn-group";
+-
+-    if (fromDate) {
+-      const backBtn = document.createElement("button");
+-      backBtn.className = "gcal-modal-back";
+-      backBtn.setAttribute("aria-label", "Back to day view");
+-      backBtn.innerHTML = "&#8592;";
+-      backBtn.addEventListener("click", () => this.showDayModal(fromDate));
+-      btnGroup.appendChild(backBtn);
+-    }
+-
+-    const closeBtn = document.createElement("button");
+-    closeBtn.className = "gcal-modal-close";
+-    closeBtn.setAttribute("aria-label", "Close");
+-    closeBtn.innerHTML = "&#10005;";
+-    closeBtn.addEventListener("click", () => this.hideModal());
+-    btnGroup.appendChild(closeBtn);
+-
+-    header.appendChild(headerContent);
+-    header.appendChild(btnGroup);
++    const back = fromDate && backdrop.classList.contains("gcal-visible") ? () => this.showDayModal(fromDate) : null;
++    const header = this.modalHeader(ev.title, ev.calendarName, back);
++    header.classList.add("gcal-modal-header-event");
++    header.style.setProperty("--ev-color", this.getEventColor(ev));
+     modal.appendChild(header);
+ 
+-    // ── Body ──
+     const body = document.createElement("div");
+     body.className = "gcal-modal-body";
+-
+     const start = new Date(ev.start);
+     const end = new Date(ev.end);
+-
+-    const dateStr = ev.allDay
+-      ? start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+-      : (() => {
+-          const day = start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+-          const t1 = start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+-          const t2 = end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+-          return `${day}\n${t1} – ${t2}`;
+-        })();
+-
+-    body.appendChild(this.modalRow("gcal-icon-clock", dateStr));
+-
+-    if (ev.location) {
+-      body.appendChild(this.modalRow("gcal-icon-pin", ev.location));
+-    }
+-
+-    if (ev.description) {
+-      body.appendChild(this.modalRow("gcal-icon-note", ev.description, true));
++    const dayText = (d) => d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
++    let when;
++    if (ev.allDay) {
++      const lastDay = this.addDays(this.dayBounds(ev).e, -1);
++      when = this.sameDay(start, lastDay) ? dayText(start) + "\nAll day" : dayText(start) + " –\n" + dayText(lastDay);
++    } else if (this.sameDay(start, end)) {
++      when = dayText(start) + "\n" + this.timeLabel(start) + " – " + this.timeLabel(end);
++    } else {
++      when = dayText(start) + ", " + this.timeLabel(start) + " –\n" + dayText(end) + ", " + this.timeLabel(end);
+     }
+-
+-    const calRow = document.createElement("div");
+-    calRow.className = "gcal-modal-row";
+-    const dot = document.createElement("span");
+-    dot.className = "gcal-modal-cal-dot";
+-    dot.style.backgroundColor = ev.calendarColor; // always show the calendar's color here
+-    const calName = document.createElement("span");
+-    calName.className = "gcal-modal-cal-name";
+-    calName.textContent = ev.calendarName;
+-    calRow.appendChild(dot);
+-    calRow.appendChild(calName);
+-    body.appendChild(calRow);
+-
++    body.appendChild(this.modalRow("When", when));
++    if (ev.location) body.appendChild(this.modalRow("Where", ev.location));
++    if (ev.description) body.appendChild(this.modalRow("Notes", ev.description));
+     modal.appendChild(body);
+     backdrop.classList.add("gcal-visible");
+   },
+ 
+-  modalRow(iconClass, text, preWrap) {
++  modalRow(label, text) {
+     const row = document.createElement("div");
+     row.className = "gcal-modal-row";
+-
+-    const icon = document.createElement("span");
+-    icon.className = `gcal-modal-icon ${iconClass}`;
+-
+-    const span = document.createElement("span");
+-    span.className = "gcal-modal-text";
+-    if (preWrap) span.style.whiteSpace = "pre-wrap";
+-    span.textContent = text;
+-
+-    row.appendChild(icon);
+-    row.appendChild(span);
++    const l = document.createElement("div");
++    l.className = "gcal-modal-label";
++    l.textContent = label;
++    const t = document.createElement("div");
++    t.className = "gcal-modal-text";
++    t.textContent = text;
++    row.append(l, t);
+     return row;
+-  },
+-
+-  // Resolves the display color for an event.
+-  // Priority: iCal COLOR property → colorRules keyword match → calendar fallback color.
+-  getEventColor(ev) {
+-    // 1. Per-event color from iCal (works for non-Google sources; Google iCal doesn't export this)
+-    if (ev.eventColor) {
+-      const lower = ev.eventColor.toLowerCase().trim();
+-      return this.GOOGLE_COLOR_MAP[lower] || ev.eventColor;
+-    }
+-
+-    // 2. Title-based color rules from config
+-    if (this._compiledColorRules && this._compiledColorRules.length) {
+-      for (const rule of this._compiledColorRules) {
+-        if (!rule.pattern || !rule.color) continue;
+-        if (rule.pattern.test(ev.title)) return rule.color;
+-      }
+-    }
+-
+-    // 3. Calendar fallback color
+-    return ev.calendarColor || "#4285F4";
+-  },
+-
+-  // Returns a gradient background string, falling back to solid for non-hex values.
+-  colorGradient(color) {
+-    if (color.startsWith("#")) {
+-      return `linear-gradient(135deg, ${color}, ${this.shadeColor(color, -20)})`;
+-    }
+-    return color;
+-  },
+-
+-  shadeColor(hex, amount) {
+-    const num = parseInt(hex.replace("#", ""), 16);
+-    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+-    const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amount));
+-    const b = Math.min(255, Math.max(0, (num & 0xff) + amount));
+-    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+-  },
++  }
+ });
+diff --git a/node_helper.js b/node_helper.js
+index 41ffed9..d4b4b0b 100644
+--- a/node_helper.js
++++ b/node_helper.js
+@@ -6,6 +6,9 @@ module.exports = NodeHelper.create({
+     console.log("[MMM-MyGCalendar] Node helper started");
+     this.config = null;
+     this.updateTimer = null;
++    // [mm-fridge patch] parsed feeds are kept so moving to other weeks does not re-download
++    this.feedCache = []; // [{ cal, data }] in calendar order
++    this.range = null; // { start, end, id } requested by the screen
+   },
+ 
+   stop() {
+@@ -15,8 +18,16 @@ module.exports = NodeHelper.create({
+   socketNotificationReceived(notification, payload) {
+     if (notification === "GCAL_INIT") {
+       this.config = payload;
++      // [mm-fridge patch] the screen says which days it draws first (the month grid)
++      this.range = this.parseRange(payload && payload.initialRange);
+       this.fetchAll();
+       this.scheduleUpdate();
++    } else if (notification === "GCAL_RANGE" && this.config) {
++      // [mm-fridge patch] the screen moved to another month, week or day: expand from the cached feeds
++      const range = this.parseRange(payload);
++      if (!range) return;
++      this.range = range;
++      if (this.feedCache.length) this.sendEvents();
+     }
+   },
+ 
+@@ -26,30 +37,72 @@ module.exports = NodeHelper.create({
+     this.updateTimer = setInterval(() => this.fetchAll(), interval);
+   },
+ 
++  // [mm-fridge patch] download every feed and keep the parsed data. A feed that
++  // fails to download keeps its last good copy instead of vanishing.
+   async fetchAll() {
+-    const now = new Date();
+-    const windowStart = new Date(now);
+-    windowStart.setDate(windowStart.getDate() - 14);
+-    const windowEnd = new Date(now);
+-    windowEnd.setDate(windowEnd.getDate() + 28);
+-
+-    const allEvents = [];
+-
++    const fresh = [];
+     for (const cal of this.config.calendars) {
+       try {
+-        const events = await this.fetchCalendar(cal, windowStart, windowEnd);
+-        allEvents.push(...events);
++        const data = await ical.async.fromURL(cal.url, {});
++        fresh.push({ cal, data });
+       } catch (err) {
+         console.error(`[MMM-MyGCalendar] Error fetching "${cal.name}":`, err.message);
++        const old = this.feedCache.find((f) => f.cal.url === cal.url);
++        if (old) fresh.push(old);
+       }
+     }
++    this.feedCache = fresh;
++    this.sendEvents();
++  },
+ 
++  // [mm-fridge patch] { start, end, id } from the screen, or null when unusable
++  parseRange(raw) {
++    if (!raw) return null;
++    const start = new Date(raw.start);
++    const end = new Date(raw.end);
++    if (isNaN(start) || isNaN(end) || end <= start) return null;
++    // Six weeks of margin on both sides: the neighbouring months are already
++    // in the browser when someone swipes, so nothing pops in after the slide.
++    start.setDate(start.getDate() - 42);
++    end.setDate(end.getDate() + 42);
++    return { start, end, id: Number(raw.id) || 0 };
++  },
++
++  // [mm-fridge patch] range the screen is showing; default is the original rolling window
++  currentRange() {
++    if (this.range) return this.range;
++    const now = new Date();
++    const start = new Date(now);
++    start.setDate(start.getDate() - 14);
++    const end = new Date(now);
++    end.setDate(end.getDate() + 28);
++    return { start, end, id: 0 };
++  },
++
++  sendEvents() {
++    const { start, end, id } = this.currentRange();
++    const allEvents = [];
++    for (const { cal, data } of this.feedCache) {
++      try {
++        allEvents.push(...this.expandFeed(data, cal, start, end));
++      } catch (err) {
++        console.error(`[MMM-MyGCalendar] Error reading "${cal.name}":`, err.message);
++      }
++    }
+     allEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
+-    this.sendSocketNotification("GCAL_EVENTS", allEvents);
++    // [mm-fridge patch] the same event on two calendars (same title, start and end)
++    // is shown once; the stable sort keeps the first calendar in the list.
++    const seen = new Set();
++    const unique = allEvents.filter((ev) => {
++      const key = ev.title.toLowerCase() + "|" + ev.start + "|" + ev.end;
++      if (seen.has(key)) return false;
++      seen.add(key);
++      return true;
++    });
++    this.sendSocketNotification("GCAL_EVENTS", { events: unique, rangeId: id });
+   },
+ 
+-  async fetchCalendar(cal, windowStart, windowEnd) {
+-    const data = await ical.async.fromURL(cal.url, {});
++  expandFeed(data, cal, windowStart, windowEnd) {
+     const events = [];
+ 
+     for (const key in data) {
+@@ -94,17 +147,27 @@ module.exports = NodeHelper.create({
+       }
+ 
+       // Use modified recurrence if it exists
++      // [mm-fridge patch] node-ical keys `recurrences` by the UTC date (YYYY-MM-DD)
++      // of RECURRENCE-ID. Comparing local date strings shifted edited instances
++      // by one day in timezones west of UTC. Moved instances also carry their
++      // own start/end, which the original code ignored.
+       let src = item;
++      let occStart = new Date(date);
++      let occEnd = new Date(occStart.getTime() + duration);
+       if (item.recurrences) {
+-        const dateStr = date.toDateString();
++        const isoDay = date.toISOString().slice(0, 10);
+         const match = Object.entries(item.recurrences).find(
+-          ([k]) => new Date(k).toDateString() === dateStr
++          ([k]) => k === isoDay || new Date(k).getTime() === date.getTime()
+         );
+-        if (match) src = match[1];
++        if (match) {
++          src = match[1];
++          if (src.start) {
++            occStart = this.toDate(src.start);
++            occEnd = src.end ? this.toDate(src.end) : new Date(occStart.getTime() + duration);
++          }
++        }
+       }
+ 
+-      const occStart = new Date(date);
+-      const occEnd = new Date(occStart.getTime() + duration);
+       events.push(this.buildEvent(src, occStart, occEnd, cal));
+     }
+   },

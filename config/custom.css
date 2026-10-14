@@ -1,0 +1,639 @@
+/* Fridge planner for MagicMirror 2.38 on a 1920x1080 touchscreen.
+ * Look: paper e-ink (warm paper, black ink, Literata serif, no glow).
+ *
+ * Page canvas: every page's content modules sit in `fullscreen_below` and
+ * are laid out as a flex ROW. MMM-pages hides modules of other pages,
+ * MagicMirror then sets them to position:fixed, so only the current page's
+ * modules take part in the row. fullscreen_below has no CSS transform, so
+ * position:fixed popups stay relative to the screen.
+ *
+ * Home split: calendar | divider | todo, driven by --msl-split. If
+ * MMM-SplitLayout fails to load, the default below gives a static 80:20.
+ */
+
+/* Literata: Google's e-book typeface (SIL Open Font License, config/fonts). */
+@font-face {
+  font-family: Literata;
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: block;
+  src: url("fonts/literata-latin-wght-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: Literata;
+  font-style: italic;
+  font-weight: 200 900;
+  font-display: block;
+  src: url("fonts/literata-latin-wght-italic.woff2") format("woff2");
+}
+
+:root {
+  /* theme tokens, used by every module of this project */
+  --paper: #f4efe4;
+  --paper-raised: #fbf8f1;
+  --paper-shade: rgb(120 100 60 / 5%);
+  --paper-shade-strong: #e8e0d0;
+  --ink: #1f1d1a;
+  --ink-soft: #6b6457;
+  --ink-faint: #a39b8c;
+  --ink-wash: rgb(31 29 26 / 7%);
+  --rule: #d9d0bf;
+  --rule-strong: #b9ae99;
+  --alert: #a3271f;
+  --scrim: rgb(30 26 20 / 45%);
+  --font-book: Literata, Georgia, "DejaVu Serif", serif;
+
+  /* MagicMirror's own variables, so stock module text turns to ink */
+  --color-text: var(--ink);
+  --color-text-dimmed: var(--ink-soft);
+  --color-text-bright: var(--ink);
+  --color-background: var(--paper);
+  --font-primary: var(--font-book);
+  --font-secondary: var(--font-book);
+
+  --gap-body-top: 12px;
+  --gap-body-right: 20px;
+  --gap-body-bottom: 14px;
+  --gap-body-left: 20px;
+  --mm-topbar-height: 64px;
+  --msl-split: 80%;
+  --msl-handle-width: 12px;
+  --msl-hit-width: 36px;
+  --mm-tap: 44px;
+}
+
+html {
+  cursor: default; /* touch first, but keep a pointer for debugging with a mouse */
+  background: var(--paper);
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 35%), transparent 70%),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--font-book);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: var(--font-book);
+}
+
+.dimmed { color: var(--ink-soft); }
+.normal { color: var(--ink); }
+.bright { color: var(--ink); }
+
+.module-header {
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-family: var(--font-book);
+}
+
+/* ---------- top bar: page title (left), page dots (center), status (right) ---------- */
+
+/* No height on .region.top.bar: its left/center/right sub regions are placed
+ * at top:100% of the bar, so the (empty) bar must stay 0 px tall. */
+.region.top.left,
+.region.top.center,
+.region.top.right {
+  height: var(--mm-topbar-height);
+}
+
+.region.top.bar .module {
+  margin-bottom: 0;
+}
+
+.region.top.right .container {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Page dots: the page navigation. Ink dots, finger sized. */
+.MMM-page-indicator .indicator {
+  min-width: var(--mm-tap);
+  min-height: var(--mm-tap);
+  padding: 0 8px;
+  justify-content: center;
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.MMM-page-indicator .indicator.dimmed,
+.MMM-page-indicator .indicator:not(.bright) {
+  color: var(--ink-faint);
+}
+
+/* MMM-SmartTouch: its container is absolute and offset 50%; dock it in the top bar */
+.MMM-SmartTouch .st-container {
+  position: static;
+  width: auto;
+  justify-content: flex-end;
+}
+
+/* Direct children only: the first bar of the hamburger icon also carries the
+ * st-container__menu-toggle class upstream, and must stay a 25x2 px line. */
+.MMM-SmartTouch .st-container > .st-container__standby-button,
+.MMM-SmartTouch .st-container > .st-container__menu-toggle {
+  width: 52px;
+  height: 52px;
+  margin: 0;
+}
+
+.MMM-SmartTouch .st-container__standby-button span {
+  width: 24px;
+  height: 24px;
+  margin: 13px auto 0;
+  border: 2px solid var(--ink);
+  border-radius: 7px;
+}
+
+.MMM-SmartTouch .st-container__menu-toggle div {
+  background: var(--ink);
+}
+
+.MMM-SmartTouch .st-container__main-menu {
+  border-color: var(--rule-strong);
+  background: var(--paper-raised);
+  color: var(--ink);
+  box-shadow: 0 8px 30px rgb(40 30 10 / 20%);
+}
+
+.MMM-SmartTouch .st-container__main-menu > ul > li {
+  border-bottom-color: var(--rule);
+  font-family: var(--font-book);
+}
+
+/* ---------- page canvas ---------- */
+
+.region.fullscreen.below > .container {
+  position: absolute;
+  top: calc(var(--gap-body-top) + var(--mm-topbar-height) + 8px);
+  right: var(--gap-body-right);
+  bottom: var(--gap-body-bottom);
+  left: var(--gap-body-left);
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.region.fullscreen.below .module {
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.region.fullscreen.below .module > .module-content {
+  height: 100%;
+}
+
+/* ---------- page 0: home split ---------- */
+
+.region.fullscreen.below .module.MMM-MyGCalendar {
+  flex: 0 0 calc(var(--msl-split) - var(--msl-handle-width) / 2);
+  overflow: hidden;
+  transition: flex-basis 250ms ease;
+}
+
+.region.fullscreen.below .module.split-home {
+  flex: 0 0 var(--msl-handle-width);
+}
+
+.region.fullscreen.below .module.MMM-TodoList {
+  flex: 1 1 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-left: 16px;
+  transition: flex-basis 250ms ease, opacity 250ms ease;
+}
+
+/* expand calendar: todo collapses to 0 */
+html.msl-collapsed-right .region.fullscreen.below .module.MMM-MyGCalendar {
+  flex-basis: calc(100% - var(--msl-handle-width));
+}
+
+html.msl-collapsed-right .region.fullscreen.below .module.MMM-TodoList {
+  flex: 0 0 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* expand todo: calendar collapses to 0 */
+html.msl-collapsed-left .region.fullscreen.below .module.MMM-MyGCalendar {
+  flex-basis: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.msl-dragging .region.fullscreen.below .module {
+  transition: none;
+}
+
+/* Calendar look lives in the patched module (MMM-MyGCalendar.css). */
+
+/* ---------- MMM-TodoList (patched): a paper list ---------- */
+
+.MMM-TodoList .todo-module {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 76px;
+  box-sizing: border-box;
+  color: var(--ink);
+  font-family: var(--font-book);
+}
+
+.MMM-TodoList .todo-header {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 0 12px;
+  border-bottom: 2px solid var(--ink);
+  background: none;
+}
+
+.MMM-TodoList .todo-tabs button,
+.MMM-TodoList .todo-toggle-complete {
+  min-height: var(--mm-tap);
+  padding: 6px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 22px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-book);
+  font-size: 17px;
+}
+
+.MMM-TodoList .todo-tabs button.active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.MMM-TodoList .todo-toggle-complete {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.MMM-TodoList .todo-list {
+  flex: 1 1 auto;
+  max-height: none;
+  overflow-y: auto;
+}
+
+/* ruled notebook lines */
+.MMM-TodoList .todo-item {
+  min-height: 54px;
+  margin: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.MMM-TodoList .todo-item span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.MMM-TodoList .todo-item input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin-right: 12px;
+  transform: none;
+  accent-color: var(--ink);
+}
+
+.MMM-TodoList .todo-item input[type="checkbox"]:checked + span {
+  color: var(--ink-faint);
+}
+
+.MMM-TodoList .todo-edit-btn,
+.MMM-TodoList .todo-del-btn {
+  min-width: var(--mm-tap);
+  min-height: var(--mm-tap);
+  color: var(--ink-soft);
+  font-size: 20px;
+}
+
+/* the + button sits inside the module (upstream pushes it below the box) */
+.MMM-TodoList .todo-add {
+  right: 12px;
+  bottom: 12px;
+  width: 64px;
+  height: 64px;
+  transform: none;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 34px;
+  font-weight: 400;
+  box-shadow: 0 4px 14px rgb(40 30 10 / 25%);
+}
+
+.MMM-TodoList .todo-confirm-modal {
+  z-index: 100000;
+  padding: 26px 30px;
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  background: var(--paper-raised);
+  box-shadow: 0 18px 50px rgb(40 30 10 / 25%);
+}
+
+.MMM-TodoList .todo-confirm-message {
+  color: var(--ink);
+  font-family: var(--font-book);
+  font-size: 22px;
+}
+
+.MMM-TodoList .todo-confirm-buttons button {
+  min-width: 96px;
+  min-height: 56px;
+  border: 1px solid var(--ink);
+  border-radius: 28px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-book);
+  font-size: 22px;
+}
+
+/* ---------- MMM-Keyboard: a bottom sheet with finger sized keys ----------
+ * It slides up from the bottom edge and leaves the top of the screen (and the
+ * todo list there) visible. The field at the top of the sheet shows what is
+ * being typed. */
+
+/* MagicMirror keeps the module element itself position:static, so the inner
+ * wrapper is the fixed layer. No ancestor has a transform, so it is fixed to
+ * the screen. */
+.region.fullscreen.above .module.MMM-Keyboard {
+  margin: 0;
+  pointer-events: none; /* only the visible sheet takes taps */
+}
+
+.MMM-Keyboard .keyboardWrapper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60000;
+  width: auto;
+  margin: 0;
+  pointer-events: none;
+}
+
+.MMM-Keyboard .kbContainer {
+  margin-top: 0;
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--rule-strong);
+  border-radius: 22px 22px 0 0;
+  background: var(--paper-shade-strong);
+  box-shadow: 0 -10px 40px rgb(40 30 10 / 22%);
+  opacity: 1;
+  transform: translateY(110%);
+  transition: transform 220ms ease-out;
+}
+
+.MMM-Keyboard .kbContainer.show-keyboard {
+  pointer-events: auto;
+  transform: none;
+}
+
+.MMM-Keyboard #inputDiv {
+  display: flex !important; /* the module toggles it; the sheet always shows the field */
+  align-items: center;
+  gap: 12px;
+  max-width: 1500px;
+  margin: 0 auto 10px;
+}
+
+.MMM-Keyboard #kbInput {
+  flex: 1 1 auto;
+  width: auto;
+  min-height: 64px;
+  margin: 0;
+  padding: 0 20px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 14px;
+  background: var(--paper-raised);
+  color: var(--ink);
+  font-family: var(--font-book);
+  font-size: 28px;
+}
+
+.MMM-Keyboard .sendButton,
+.MMM-Keyboard .hideButton {
+  min-width: 140px;
+  min-height: 64px;
+  margin: 0;
+  padding: 0 22px;
+  border-radius: 32px;
+  font-family: var(--font-book);
+  font-size: 24px;
+}
+
+.MMM-Keyboard .sendButton {
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* upstream labels this button with an up arrow; it closes the keyboard */
+.MMM-Keyboard .hideButton {
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  color: transparent;
+  font-size: 0;
+}
+
+.MMM-Keyboard .hideButton::after {
+  content: "Cancel";
+  color: var(--ink);
+  font-size: 24px;
+}
+
+.MMM-Keyboard .simple-keyboard,
+.MMM-Keyboard .hg-theme-default {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0;
+  background: transparent;
+  font-family: var(--font-book);
+}
+
+.MMM-Keyboard .hg-theme-default .hg-row {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.MMM-Keyboard .hg-theme-default .hg-row .hg-button:not(:last-child) {
+  margin-right: 0;
+}
+
+.MMM-Keyboard .hg-theme-default .hg-button,
+.MMM-Keyboard .hg-button.hg-standardBtn {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+  height: 74px;
+  margin: 0;
+  border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px;
+  border-radius: 12px;
+  background: var(--paper-raised);
+  box-shadow: none;
+  color: var(--ink);
+  font-size: 30px;
+}
+
+.MMM-Keyboard .hg-theme-default .specialButton,
+.MMM-Keyboard .hg-theme-default .hg-functionBtn {
+  flex-grow: 1.5;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 22px;
+}
+
+.MMM-Keyboard .hg-theme-default .hg-button[data-skbtn="{space}"] {
+  flex-grow: 6;
+}
+
+.MMM-Keyboard .hg-theme-default .hg-activeButton {
+  background: var(--ink) !important;
+  color: var(--paper);
+}
+
+/* ---------- page 1: cast ---------- */
+
+.region.fullscreen.below .module.MMM-YouTubeCast {
+  flex: 1 1 auto;
+}
+
+/* ---------- page 2: sports: scoreboard (left) | game details (right) ----------
+ * The scoreboard draws white and light blue text for a black mirror; all of it
+ * is turned to ink here. Winners bold, losers grey, live clock red. Broadcaster
+ * logos are mostly white artwork, so they are drawn as grey ink. */
+
+/* scores | divider | details, driven by --ssl-split (MMM-SplitLayout prefix "ssl").
+ * The scoreboard's content is zoomed, not the module box, so the split
+ * percentages stay true. */
+.region.fullscreen.below .module.MMM-MyScoreboard {
+  flex: 0 0 calc(var(--ssl-split, 45%) - var(--msl-handle-width) / 2);
+  min-width: 0;
+  max-width: none; /* the module caps itself at 400 px for a mirror corner */
+  box-sizing: border-box;
+  padding-right: 30px; /* room for the divider buttons */
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: flex-basis 250ms ease;
+}
+
+.region.fullscreen.below .module.MMM-MyScoreboard > .module-content {
+  height: auto;
+  zoom: 1.3; /* module is sized for a 1080p mirror corner, not a full page */
+}
+
+/* Games as a grid: as many columns as fit the width the divider gives, each
+ * at least as wide as one game box needs in the chosen view style. League
+ * headings span the whole row. */
+.MMM-MyScoreboard .wrapper {
+  --sb-col: 300px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--sb-col), 1fr));
+  column-gap: 22px;
+  align-items: start;
+}
+
+.MMM-MyScoreboard .wrapper:has(.box-score.oneLine, .box-score.oneLineWithLogos) {
+  --sb-col: 375px;
+}
+
+.MMM-MyScoreboard .wrapper > .league-separator {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+}
+
+.MMM-MyScoreboard .wrapper > .box-score {
+  min-width: 0;
+  box-sizing: border-box;
+  padding-right: 8px;
+}
+
+.region.fullscreen.below .module.split-sports {
+  flex: 0 0 var(--msl-handle-width);
+}
+
+.region.fullscreen.below .module.MMM-GameDetails {
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0 10px 0 30px; /* left: room for the divider buttons */
+  overflow: hidden;
+  transition: flex-basis 250ms ease, opacity 250ms ease;
+}
+
+html.ssl-collapsed-right .region.fullscreen.below .module.MMM-MyScoreboard {
+  flex-basis: calc(100% - var(--msl-handle-width));
+}
+
+html.ssl-collapsed-right .region.fullscreen.below .module.MMM-GameDetails {
+  flex: 0 0 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.ssl-collapsed-left .region.fullscreen.below .module.MMM-MyScoreboard {
+  flex-basis: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.ssl-dragging .region.fullscreen.below .module {
+  transition: none;
+}
+
+.MMM-MyScoreboard,
+.MMM-MyScoreboard .box-score :is(.score, .team-name, .team-short-code, .status, .vs-symbol, .playoff-status) {
+  color: var(--ink) !important;
+  font-family: var(--font-book);
+}
+
+.MMM-MyScoreboard .box-score.final.winner-h .score.home,
+.MMM-MyScoreboard .box-score.final.winner-v .score.visitor {
+  font-weight: 700;
+}
+
+.MMM-MyScoreboard .box-score.final.winner-h :is(.score, .team-name, .team-short-code).visitor,
+.MMM-MyScoreboard .box-score.final.winner-v :is(.score, .team-name, .team-short-code).home,
+.MMM-MyScoreboard .box-score.in-progress.delay .status {
+  color: var(--ink-soft) !important;
+}
+
+.MMM-MyScoreboard .box-score.in-progress .status {
+  color: var(--alert) !important;
+}
+
+.MMM-MyScoreboard :is(.broadcastIcon, .broadcast img) {
+  filter: brightness(0) opacity(0.6);
+}
+
+.MMM-MyScoreboard .box-score {
+  border-color: var(--rule) !important;
+  background-color: transparent !important;
+}
+
+.MMM-MyScoreboard .league-separator {
+  border-bottom: 2px solid var(--ink);
+  color: var(--ink-soft);
+}
+
+/* ---------- page 3: globe, weather, news ---------- */
+
+.region.fullscreen.below .module.MMM-GlobeWeatherBridge {
+  flex: 1 1 auto;
+  overflow: hidden;
+}

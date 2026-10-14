@@ -1,0 +1,20 @@
+# systemd USER unit. Installed to ~/.config/systemd/user/magicmirror.service
+# Started by ~/.config/labwc/autostart after the Wayland environment is
+# imported, so it is intentionally not enabled for default.target.
+# The config bridge restarts it with: systemctl --user restart magicmirror.service
+
+[Unit]
+Description=MagicMirror fridge calendar (Electron kiosk)
+After=graphical-session.target
+
+[Service]
+Type=simple
+Environment=MM_DIR=%h/MagicMirror
+EnvironmentFile=-%h/.config/magicmirror/mm.env
+ExecStart=%h/.local/share/magicmirror/mm-start.sh
+Restart=on-failure
+RestartSec=5
+# Electron plus the node helpers can take a while to stop on a Pi 4.
+TimeoutStopSec=20
+StandardOutput=journal
+StandardError=journal

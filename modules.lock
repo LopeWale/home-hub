@@ -1,0 +1,11 @@
+# Third party modules, pinned. Read by install.sh.
+# Columns: <dir name> <git url> <commit> <npm: none|prod|ci>
+# A file patches/<dir name>.patch, if present, is applied after checkout.
+# All commits checked against the live repos on 2026-10-01.
+MMM-pages                  https://github.com/edward-shen/MMM-pages.git                   e5fa5453ee46993e71db14b07dad9cae1389b5ee none
+MMM-page-indicator         https://github.com/edward-shen/MMM-page-indicator.git          c431bb9361ffde53da8ebfdd1b2c9f6ca8992570 none
+MMM-SmartTouch             https://github.com/EbenKouao/MMM-SmartTouch.git                2e8ce8392c01f7d976204197f0181ae3ca2d7818 none
+MMM-Keyboard               https://github.com/JHWelch/MMM-Keyboard.git                    283c008a3b9f19ffdcc7f7130946f9d48184dbbf prod
+MMM-MyGCalendar            https://github.com/johnster000/MMM-MyGCalendar.git             4d118c69304d67033bb342fc80161a49066e7262 prod
+MMM-TodoList               https://github.com/tomoki13/MMM-TodoList.git                   ba980026b8bc97db8c424467218eaf7b92e2ae8d none
+MMM-MyScoreboard           https://github.com/dathbe/MMM-MyScoreboard.git                 6318b281181d6b7fac4eb8dd095671c009280816 prod

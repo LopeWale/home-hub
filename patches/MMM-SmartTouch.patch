@@ -1,0 +1,19 @@
+diff --git a/node_helper.js b/node_helper.js
+index bac9fca..94b3435 100644
+--- a/node_helper.js
++++ b/node_helper.js
+@@ -25,12 +25,12 @@ module.exports = NodeHelper.create({
+ 
+     if (notification === "SHUTDOWN") {
+       console.log("Shutting down Rpi...")
+-      require('child_process').exec('shutdown -h now', console.log)
++      require('child_process').exec('sudo -n shutdown -h now', console.log) // [mm-fridge patch]
+     }
+ 
+     if (notification === "RESTART") {
+       console.log("Restarting Rpi...")
+-      require('child_process').exec('sudo reboot', console.log)
++      require('child_process').exec('sudo -n reboot', console.log) // [mm-fridge patch]
+     }
+   },
+ });

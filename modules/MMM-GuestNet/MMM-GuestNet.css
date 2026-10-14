@@ -1,0 +1,126 @@
+/* Colors come from the fridge theme tokens in config/custom.css, with fallbacks. */
+
+.MMM-GuestNet .gn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink, #1f1d1a);
+  touch-action: manipulation;
+}
+
+.MMM-GuestNet .gn-icon:active {
+  background: var(--ink-wash, rgb(0 0 0 / 8%));
+}
+
+.MMM-GuestNet .gn-icon svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.MMM-GuestNet .gn-icon .gn-off {
+  opacity: 0.25;
+}
+
+.MMM-GuestNet .gn-icon .gn-dot {
+  fill: currentcolor;
+  stroke: none;
+}
+
+.MMM-GuestNet .gn-icon .gn-cross {
+  stroke: var(--alert, #a3271f);
+  stroke-width: 2.2;
+}
+
+/* Popup lives on <body>, above the top bar and the keyboard */
+.gn-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--scrim, rgb(30 26 20 / 45%));
+}
+
+.gn-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 520px;
+  padding: 34px 40px 28px;
+  border: 1px solid var(--rule, #cfc6b4);
+  border-radius: 18px;
+  background: var(--paper-raised, #fbf8f1);
+  color: var(--ink, #1f1d1a);
+  box-shadow: 0 18px 50px rgb(40 30 10 / 25%);
+  font-family: var(--font-book, Georgia, serif);
+}
+
+.gn-heading {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.gn-qr {
+  width: 340px;
+  height: 340px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.gn-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.gn-note {
+  color: var(--ink-soft, #6b6457);
+  font-size: 19px;
+  text-align: center;
+}
+
+.gn-password {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 20px;
+}
+
+.gn-password span {
+  color: var(--ink-soft, #6b6457);
+}
+
+.gn-password strong {
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.gn-close {
+  min-width: 180px;
+  min-height: 56px;
+  margin-top: 6px;
+  border: 1px solid var(--ink, #1f1d1a);
+  border-radius: 28px;
+  background: var(--ink, #1f1d1a);
+  color: var(--paper, #f4efe5);
+  font-family: inherit;
+  font-size: 22px;
+  touch-action: manipulation;
+}

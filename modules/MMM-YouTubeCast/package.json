@@ -1,0 +1,10 @@
+{
+  "name": "mmm-youtubecast",
+  "version": "1.0.0",
+  "private": true,
+  "description": "YouTube cast receiver for MagicMirror: the YouTube app on any phone (iPhone or Android) casts to the mirror, playback runs in YouTube's own embedded player.",
+  "license": "MIT",
+  "dependencies": {
+    "yt-cast-receiver": "git+https://github.com/patrickkfkan/yt-cast-receiver.git#83d61fa169e33c5e0046c2440b99a17cd9493e73"
+  }
+}
