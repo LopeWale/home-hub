@@ -19,8 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-The MIT License covers the software in this repository. The 3D printable
-enclosure and its assembly documents in hardware/ are licensed separately under
-CC BY-NC-SA 4.0 (see hardware/LICENSE.md). Third party components keep their own
-licenses (see THIRD_PARTY_NOTICES.md).
