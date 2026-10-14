@@ -1,17 +1,14 @@
 # Images for the main README
 
-Already here: `enclosure-overview.png` (assembly overview) and `assembly-viewer.png`
-(the interactive assembly page).
+Already here: `enclosure-overview.png` (assembly overview), `assembly-viewer.png`
+(the interactive assembly page), and the four page screenshots `screen-home.png`,
+`screen-cast.png`, `screen-sports.png` and `screen-globe.jpg` (personal details blurred).
 
 To add. Save each with exactly this name, then uncomment its line in `../../README.md`.
 
 | File | What to show |
 |---|---|
 | `hero.jpg` | The finished Home Hub on the wall, straight on, screen on. |
-| `screen-home.png` | Home page: calendar and to-do lists. |
-| `screen-cast.png` | Cast page, idle (how to cast and the TV code) or playing. |
-| `screen-sports.png` | Sports page with a game selected. |
-| `screen-globe.png` | Globe page with a place selected. |
 | `admin-page.png` | The admin page on a phone. |
 | `print-parts.jpg` | The printed parts laid out before assembly. |
 | `build-inside.jpg` | Inside the enclosure with the service lid off: monitor, Pi and cables. |

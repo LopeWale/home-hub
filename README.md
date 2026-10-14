@@ -40,12 +40,13 @@ Four pages. Swipe or tap the dots at the top to move between them.
 
 On every page, the top bar has a Bluetooth speaker icon and a small network icon. Tap the network icon for a guest Wi-Fi QR code that visitors can scan to join.
 
-<!-- Photo to add: docs/images/screen-home.png, docs/images/screen-cast.png, docs/images/screen-sports.png, docs/images/screen-globe.png (see docs/images/README.md). Uncomment the line(s) below once added. -->
-<!-- | Home | Cast | -->
-<!-- |---|---| -->
-<!-- | ![Home page](docs/images/screen-home.png) | ![Cast page](docs/images/screen-cast.png) | -->
-<!-- | **Sports** | **Globe** | -->
-<!-- | ![Sports page](docs/images/screen-sports.png) | ![Globe page](docs/images/screen-globe.png) | -->
+| Home | Cast |
+|---|---|
+| ![Home page: calendar and to-do lists](docs/images/screen-home.png) | ![Cast page](docs/images/screen-cast.png) |
+| **Sports** | **Globe** |
+| ![Sports page: scores and game details](docs/images/screen-sports.png) | ![Globe page: Google 3D Earth and the place panel](docs/images/screen-globe.jpg) |
+
+*Screenshots from the running hub. Personal calendar entries, to-do items, saved places and the cast code are blurred.*
 
 A private admin page (reached over [Tailscale](https://tailscale.com) only) edits calendars, to-do tab names, sports teams, the guest Wi-Fi and the globe's places, from your phone.
 
