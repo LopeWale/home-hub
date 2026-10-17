@@ -14,6 +14,16 @@ if [ "${MM_DISABLE_GPU:-0}" != "1" ]; then
 	export ELECTRON_ENABLE_GPU=1
 fi
 
+# A Pi 4 has no battery clock: after a power cut it boots with the last saved
+# time (up to days old) and corrects it only once the network is up. Modules
+# that ask for "today" (scores, weather) at start must not start before that.
+# Wait up to 90 s for the clock (systemd-timesyncd), then start anyway, so an
+# offline Pi still shows the screen.
+for _ in $(seq 1 90); do
+	[ "$(timedatectl show -p NTPSynchronized --value 2>/dev/null)" = "yes" ] && break
+	sleep 1
+done
+
 if [ "$MM_DISPLAY_MODE" = "auto" ]; then
 	# The session hook (labwc autostart or ~/.config/autostart) hands over
 	# WAYLAND_DISPLAY or DISPLAY before it starts this service.
