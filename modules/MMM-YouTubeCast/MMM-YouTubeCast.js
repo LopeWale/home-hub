@@ -111,10 +111,10 @@ Module.register("MMM-YouTubeCast", {
 		}
 		const code = document.createElement("div");
 		code.className = "ytc-code";
-		code.textContent = s.pairingCode || "getting a TV code…";
+		code.textContent = s.pairingCode || (s.senders && s.senders.length ? "…" : "getting a TV code…");
 		const sub = document.createElement("div");
 		sub.className = "ytc-sub";
-		sub.textContent = s.senders && s.senders.length ? "Connected: " + s.senders.join(", ") : "The code changes every 5 minutes.";
+		sub.textContent = s.senders && s.senders.length ? "Connected: " + s.senders.join(", ") : "A new code appears every 5 minutes while this page is open.";
 		this.idleEl.append(title, steps, code, sub);
 	},
 
@@ -245,6 +245,7 @@ Module.register("MMM-YouTubeCast", {
 	enterCasting () {
 		if (this.casting) return;
 		this.casting = true;
+		this.updatePairing();
 		this.stageEl.classList.remove("ytc-hidden");
 		this.stageEl.classList.add("ytc-fullscreen");
 		this.sendNotification("PAGE_SELECT", this.config.castPage);
@@ -257,6 +258,7 @@ Module.register("MMM-YouTubeCast", {
 	leaveCasting () {
 		if (!this.casting) return;
 		this.casting = false;
+		this.updatePairing();
 		clearInterval(this.statusTimer);
 		this.stageEl.classList.add("ytc-hidden");
 		this.stageEl.classList.remove("ytc-fullscreen");
@@ -308,8 +310,20 @@ Module.register("MMM-YouTubeCast", {
 		}
 	},
 
+	/** Ask the helper for TV codes only while the idle Cast page is on screen. */
+	updatePairing () {
+		this.sendSocketNotification("YTC_PAIRING", { want: this.onScreen === true && !this.casting });
+	},
+
 	suspend () {
+		this.onScreen = false;
+		this.updatePairing();
 		// Someone left the cast page while a video plays: pause it, phones see the pause.
 		if (this.isPlaying()) this.userAction("pause");
+	},
+
+	resume () {
+		this.onScreen = true;
+		this.updatePairing();
 	}
 });

@@ -73,6 +73,10 @@ module.exports = NodeHelper.create({
 					await this.startReceiver();
 				}
 				this.broadcastState();
+			} else if (notification === "YTC_PAIRING") {
+				// The screen asks for a TV code only while the Cast page shows its idle
+				// screen. See setPairing().
+				this.setPairing(Boolean(payload && payload.want));
 			} else if (notification === "YTC_ACK") {
 				const entry = this.pending.get(payload && payload.id);
 				if (entry) {
@@ -253,10 +257,18 @@ module.exports = NodeHelper.create({
 
 		const updateSenders = () => {
 			this.senders = this.receiver.getConnectedSenders().map((s) => (s.user && s.user.name) || s.name || "Phone");
+			this.applyPairing();
 			this.broadcastState();
 		};
-		this.receiver.on("senderConnect", updateSenders);
-		this.receiver.on("senderDisconnect", updateSenders);
+		this.receiver.on("senderConnect", (s) => {
+			Log.log("[MMM-YouTubeCast] phone connected: " + ((s && s.name) || "?"));
+			updateSenders();
+		});
+		this.receiver.on("senderDisconnect", (s, implicit) => {
+			// Logged so a dropped cast can be matched to its cause (time, phone).
+			Log.log("[MMM-YouTubeCast] phone disconnected: " + ((s && s.name) || "?") + (implicit ? " (implicit)" : ""));
+			updateSenders();
+		});
 		this.receiver.on("error", (err) => Log.error("[MMM-YouTubeCast] receiver error: " + (err && err.message)));
 		this.receiver.on("terminate", (err) => {
 			Log.error("[MMM-YouTubeCast] receiver stopped: " + (err && err.message) + ". Restarting in 30 s.");
@@ -281,9 +293,36 @@ module.exports = NodeHelper.create({
 			Log.warn("[MMM-YouTubeCast] pairing code unavailable: " + (err && err.message) + ". Retrying in 60 s.");
 			this.pairingCode = null;
 			this.broadcastState();
-			setTimeout(() => this.pairing.start(), 60000);
+			clearTimeout(this.pairingRetry);
+			this.pairingRetry = setTimeout(() => this.applyPairing(), 60000);
 		});
-		this.pairing.start();
+		this.applyPairing();
+	},
+
+	/* "Link with TV code" codes are fetched only while someone can see them:
+	 * the Cast page is on screen and nothing is playing. The library refreshes
+	 * the code every 5 minutes while its service runs (yt-cast-receiver
+	 * PairingCodeRequestService); keeping that running during a cast lined up
+	 * with casts dropping every 5 minutes (2026-10-17). A YouTube TV app also
+	 * shows a code only on its "Link with TV code" screen. */
+	setPairing (want) {
+		this.pairingWanted = want;
+		this.applyPairing();
+	},
+
+	applyPairing () {
+		if (!this.pairing) return;
+		clearTimeout(this.pairingRetry);
+		const playing = this.senders && this.senders.length > 0;
+		if (this.pairingWanted && !playing) {
+			this.pairing.start();
+		} else {
+			this.pairing.stop();
+			if (this.pairingCode) {
+				this.pairingCode = null;
+				this.broadcastState();
+			}
+		}
 	},
 
 	async restartReceiver () {
