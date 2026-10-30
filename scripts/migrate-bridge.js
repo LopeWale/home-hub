@@ -68,8 +68,15 @@ if (require.main === module) {
 	}
 	const changes = migrate(data);
 	if (changes.length) {
+		// temp file, fsync, rename: a power cut never leaves a half-written file
 		const tmp = file + ".migrate.tmp";
-		fs.writeFileSync(tmp, JSON.stringify(data, null, 2) + "\n", { mode: 0o644 });
+		const fd = fs.openSync(tmp, "w", 0o644);
+		try {
+			fs.writeFileSync(fd, JSON.stringify(data, null, 2) + "\n");
+			fs.fsyncSync(fd);
+		} finally {
+			fs.closeSync(fd);
+		}
 		fs.renameSync(tmp, file);
 		for (const c of changes) console.log("    " + c);
 	}

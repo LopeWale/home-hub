@@ -1,0 +1,18 @@
+# systemd USER unit. Installed to ~/.config/systemd/user/mm-health.service
+# Writes one line a minute to ~/fridge-health.log (memory, swap, GPU memory,
+# temperature, throttling, MagicMirror process sizes) so a slow build-up
+# before a freeze can be read afterwards. Read only; no keys or passwords.
+#   bash ~/.local/share/magicmirror/health-log.sh --summary   one row per hour
+
+[Unit]
+Description=Fridge health log (one line a minute)
+
+[Service]
+Type=simple
+ExecStart=/bin/bash %h/.local/share/magicmirror/health-log.sh
+Restart=always
+RestartSec=30
+Nice=10
+
+[Install]
+WantedBy=default.target

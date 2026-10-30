@@ -274,9 +274,13 @@ mkdir -p "$UNIT_DIR" "$HOME/.local/share/magicmirror" "$HOME/.config/magicmirror
 install -m 755 "$REPO_DIR/system/mm-start.sh" "$HOME/.local/share/magicmirror/mm-start.sh"
 install -m 644 "$REPO_DIR/system/magicmirror.service" "$UNIT_DIR/magicmirror.service"
 install -m 644 "$REPO_DIR/system/mm-configbridge.service" "$UNIT_DIR/mm-configbridge.service"
+install -m 755 "$REPO_DIR/scripts/health-log.sh" "$HOME/.local/share/magicmirror/health-log.sh"
+install -m 644 "$REPO_DIR/system/mm-health.service" "$UNIT_DIR/mm-health.service"
 [ -f "$HOME/.config/magicmirror/mm.env" ] || printf '# Extra environment for MagicMirror, e.g.\n# MM_DISABLE_GPU=1\n# MM_DISPLAY_MODE=x11\n' > "$HOME/.config/magicmirror/mm.env"
 systemctl --user daemon-reload
-systemctl --user enable mm-configbridge.service
+systemctl --user enable mm-configbridge.service mm-health.service
+# A health log started by hand (older instructions) would write the same file twice.
+pkill -f 'MagicMirrorCode/scripts/health-log.sh' 2>/dev/null || true
 # Let user services start at boot without an interactive login.
 loginctl show-user "$USER" -p Linger 2>/dev/null | grep -q 'Linger=yes' || sudo loginctl enable-linger "$USER"
 
@@ -288,6 +292,24 @@ if grep -q '>>> magicmirror kiosk >>>' "$AUTOSTART"; then
 	sed -i '/>>> magicmirror kiosk >>>/,/<<< magicmirror kiosk <<</d' "$AUTOSTART"
 fi
 cat "$REPO_DIR/system/labwc-autostart.snippet" >> "$AUTOSTART"
+
+# Added after the Pi froze for over a day in October 2026. Each file below is
+# undone by deleting it (see the comment at its top).
+say "Reliability: logs kept across reboots, hardware watchdog"
+sys_conf() { # src dst: installs and returns 0 only when dst changed
+	cmp -s "$1" "$2" 2>/dev/null && return 1
+	sudo install -D -m 644 "$1" "$2"
+}
+if sys_conf "$REPO_DIR/system/journald-mm-fridge.conf" /etc/systemd/journald.conf.d/90-mm-fridge.conf; then
+	sudo systemctl restart systemd-journald && echo "    logs are now kept across reboots (at most 200 MB)"
+fi
+if [ -e /dev/watchdog ]; then
+	if sys_conf "$REPO_DIR/system/watchdog-mm-fridge.conf" /etc/systemd/system.conf.d/90-mm-fridge-watchdog.conf; then
+		sudo systemctl daemon-reexec && echo "    hardware watchdog on: the Pi reboots itself if it stops responding for 15 s"
+	fi
+else
+	warn "no /dev/watchdog on this Pi: hardware watchdog not enabled"
+fi
 
 fi # SERVICES
 
@@ -309,7 +331,7 @@ say "MagicMirror config check"
 
 if [ "$START" -eq 1 ]; then
 	say "Starting services"
-	systemctl --user restart mm-configbridge.service
+	systemctl --user restart mm-configbridge.service mm-health.service
 	if [ -n "${WAYLAND_DISPLAY:-}" ]; then
 		systemctl --user import-environment WAYLAND_DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DISPLAY
 		systemctl --user restart magicmirror.service

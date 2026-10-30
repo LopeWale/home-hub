@@ -144,6 +144,16 @@ To update later, from the computer: `./scripts/deploy-to-pi.sh pi@homehub.local 
 
 Logs: `journalctl --user -u magicmirror -f` and `journalctl --user -u mm-configbridge -f`.
 
+### Replacing the SD card
+
+Do this when the screen shows "SD card errors", `verify.sh` fails its SD card check, or the Pi stops starting. Do not reuse the old card or copy its files back wholesale: on a failing card the system files themselves are damaged.
+
+1. **Save the data** from the old card on a Mac (read-only): `sudo bash scripts/save-pi-data.sh disk4 <pi-user>` (find the disk with `diskutil list`). It goes to `~/pi-saved-data`.
+2. **Flash a new card**, 32 GB or larger, and install as in steps 1 to 3 above.
+3. **Put the data back:** `bash scripts/restore-pi-data.sh <pi-user>@homehub.local`. Calendars, to-do lists, the admin page's settings and token, the cast pairing, the choice of Bluetooth speaker and the installer's backups come back. Pair the speaker once more from the speaker icon: Bluetooth keeps the pairing itself in its own storage (`/var/lib/bluetooth`), which the BlueZ project says not to edit from outside ([settings storage](https://bluez.readthedocs.io/en/latest/settings-storage/)), so the scripts leave it alone (decided by Claude, 2026-10-28).
+4. **Tailscale:** the new install is a new Tailscale device, so the admin page's address changes. The installer prints it. Remove the old device in the Tailscale admin console.
+5. **Check:** `~/MagicMirrorCode/scripts/verify.sh`.
+
 ---
 
 ## Configuration
@@ -242,6 +252,7 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 | `modules/MMM-GuestNet` | The network icon and the guest Wi-Fi QR popup. |
 | `modules/MMM-SplitLayout` | The drag dividers on Home and Sports. |
 | `modules/MMM-TouchNav` | Page titles, swipe between pages, return to Home when idle. |
+| `modules/MMM-Guard` | Restarts MagicMirror when the page or GPU process crashes or the page hangs, instead of leaving a frozen screen. Shows a warning strip when the SD card has errors, the power supply is too weak, or the disk is nearly full. |
 | `config-bridge/` | The admin page server (Node, no npm dependencies). |
 | `system/` | systemd user services and the desktop autostart hook. |
 | `scripts/` | Deploy, verify, diagnostics, globe asset download, and SD card backup and restore helpers. |
@@ -271,6 +282,12 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 - **Casting** uses [yt-cast-receiver](https://github.com/patrickkfkan/yt-cast-receiver): YouTube app discovery on the same Wi-Fi, plus "Link with TV code" pairing.
 - **Electron 44.5.1.** MagicMirror 2.38.0 ships Electron 44.4.5, which can flash and then blank the screen on Raspberry Pi OS trixie ([MagicMirror #4287](https://github.com/MagicMirrorOrg/MagicMirror/issues/4287)). The installer upgrades it; remove the pin once MagicMirror releases a version with 44.5.1.
 - **Stay on Wayland (labwc).** Raspberry Pi's documentation advises against switching to X11, which is no longer developed ([Raspberry Pi configuration docs](https://www.raspberrypi.com/documentation/computers/configuration.html)).
+- **Recovering from freezes** (decided by Claude, 2026-10-26, after the Pi froze for over a day). Each layer catches a different failure; each is undone by removing one file.
+  - *Hung kernel or system:* the Pi 4's hardware watchdog reboots it after 15 s without a response. Off by default in systemd ([systemd-system.conf](https://www.freedesktop.org/software/systemd/man/257/systemd-system.conf.html), `RuntimeWatchdogSec=`); 15 s is inside the Pi 4 watchdog's limit of about 16 s ([bcm2835_wdt.c](https://github.com/raspberrypi/linux/blob/rpi-6.12.y/drivers/watchdog/bcm2835_wdt.c)). File: `/etc/systemd/system.conf.d/90-mm-fridge-watchdog.conf`.
+  - *Crashed, killed or hung screen while the Pi still runs:* MagicMirror 2.38 has no handler for this ([js/electron.js](https://github.com/MagicMirrorOrg/MagicMirror/blob/v2.38.0/js/electron.js)), so `MMM-Guard` exits on Electron's `render-process-gone`, a GPU `child-process-gone`, or 60 s of `unresponsive` ([Electron webContents](https://www.electronjs.org/docs/latest/api/web-contents), [app](https://www.electronjs.org/docs/latest/api/app)), and systemd restarts MagicMirror. Remove `{ module: "MMM-Guard" }` from `config.js` to undo.
+  - *Failing SD card* (added 2026-10-28). What actually stopped the fridge: on 2026-10-25 the card corrupted the folder that holds the system's shared libraries (`/usr/lib/aarch64-linux-gnu`, unchanged since 10-12), the kernel counted 6.9 million file system errors over 34 hours, and after the power cycle the Pi could not start. Nothing on screen said so. `MMM-Guard` now checks every 10 minutes the kernel's ext4 error count (`/sys/fs/ext4/*/errors_count`), under-voltage (`vcgencmd get_throttled`, [Raspberry Pi docs](https://www.raspberrypi.com/documentation/computers/os.html)) and free space, and shows a strip at the bottom of every page when one fails; `verify.sh` checks the same. See [Replacing the SD card](#replacing-the-sd-card).
+  - *No read-only system for now* (decided by Claude, 2026-10-28; not yet confirmed by Emmanuel). Raspberry Pi OS can lock the system files and keep every change in memory (raspi-config's overlay file system), but the files that broke were not being written to, everything the fridge keeps (to-do lists, settings, pairings, Tailscale, logs) would need a separate writable area, every update would need two restarts, and in May 2026 a kernel update left the overlay silently off ([raspi-config #306](https://github.com/RPi-Distro/raspi-config/issues/306); Raspberry Pi white paper [Making a more resilient file system](https://pip-assets.raspberrypi.com/categories/685-app-notes-guides-whitepapers/documents/RP-003610-WP-3-Making%20a%20more%20resilient%20file%20system.pdf), release 3, 2026-08-07). Instead: power the monitor separately if it still runs from the Pi's USB (see Known issues), use a well-known card brand, make saves fsync before renaming, and the health log's `card_write_mb` column to measure daily writes. Revisit if the card is written heavily or the power warning appears.
+  - *Evidence for next time:* the system log is kept across reboots (Raspberry Pi OS otherwise keeps it in memory only), capped at 200 MB (`/etc/systemd/journald.conf.d/90-mm-fridge.conf`, [journald.conf](https://manpages.debian.org/trixie/systemd/journald.conf.5.en.html)), and `mm-health.service` writes memory, swap, GPU memory, temperature and throttling to `~/fridge-health.log` once a minute.
 
 ---
 
@@ -291,7 +308,10 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 | "Cannot enable. Maybe the USB cable is bad?" at boot | The touch cable is in a blue USB 3 port and the monitor's USB 3 link fails. Move it to a black USB 2 port. |
 | Admin page unreachable | `tailscale status` on the Pi, and `journalctl --user -u mm-configbridge`. |
 | Weather panel says a key is not allowed | Tick the API in the key's API restrictions in Google Cloud Console. |
-| Back up before re-imaging the card | `scripts/save-pi-data.sh` copies keys and saved data off the SD card on a Mac, read-only; `scripts/restore-pi-data.sh` puts them back after a fresh install. |
+| It froze or restarted by itself | After it is back: `journalctl -b -1 -p warning` (the boot before), `journalctl --user -u magicmirror -b -1 \| grep -i guard` (screen restarts), and `bash ~/.local/share/magicmirror/health-log.sh --summary` (memory and temperature by the hour, and how much was written to the SD card). |
+| Back up before re-imaging the card | `scripts/save-pi-data.sh` copies keys and saved data off the SD card on a Mac, read-only; `scripts/restore-pi-data.sh` puts them back after a fresh install. See [Replacing the SD card](#replacing-the-sd-card). |
+| Strip at the bottom: "SD card errors" | The card is failing. Replace it soon: [Replacing the SD card](#replacing-the-sd-card). |
+| Strip at the bottom: "Power too weak" | Under-voltage happened since the last start. Use the Raspberry Pi 5.1 V 3 A supply and power the monitor separately ([Wiring and power](#wiring-and-power)), then reboot. |
 
 ---
 

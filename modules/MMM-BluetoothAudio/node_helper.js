@@ -41,11 +41,20 @@ module.exports = NodeHelper.create({
 		}
 	},
 
+	// Temp file, fsync, rename: a power cut leaves the old file or the new one,
+	// never a half-written one (Raspberry Pi white paper RP-003610-WP).
 	save () {
 		try {
 			fs.mkdirSync(path.dirname(this.file), { recursive: true });
-			fs.writeFileSync(this.file + ".tmp", JSON.stringify(this.saved, null, 2));
-			fs.renameSync(this.file + ".tmp", this.file);
+			const tmp = this.file + ".tmp";
+			const fd = fs.openSync(tmp, "w");
+			try {
+				fs.writeFileSync(fd, JSON.stringify(this.saved, null, 2));
+				fs.fsyncSync(fd);
+			} finally {
+				fs.closeSync(fd);
+			}
+			fs.renameSync(tmp, this.file);
 		} catch (err) {
 			Log.warn("[MMM-BluetoothAudio] could not save: " + err.message);
 		}

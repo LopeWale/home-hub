@@ -1,0 +1,17 @@
+/* Warning strip (only present when the SD card, power or disk check fails).
+ * Touches pass through it to whatever is underneath. */
+#mg-warning {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  z-index: 900;
+  max-width: 90vw;
+  padding: 6px 14px;
+  transform: translateX(-50%);
+  border: 2px solid var(--ink, #1f1d1a);
+  border-radius: 6px;
+  background: var(--paper-raised, #fbf8f1);
+  color: var(--ink, #1f1d1a);
+  font-size: 18px;
+  pointer-events: none;
+}

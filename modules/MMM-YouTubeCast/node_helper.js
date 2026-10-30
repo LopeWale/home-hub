@@ -163,8 +163,15 @@ module.exports = NodeHelper.create({
 			async set (key, value) {
 				this.data[key] = value;
 				fs.mkdirSync(path.dirname(this.file), { recursive: true });
+				// temp file, fsync, rename: a power cut never leaves a half-written file
 				const tmp = this.file + ".tmp";
-				fs.writeFileSync(tmp, JSON.stringify(this.data, null, 2), { mode: 0o600 });
+				const fd = fs.openSync(tmp, "w", 0o600);
+				try {
+					fs.writeFileSync(fd, JSON.stringify(this.data, null, 2));
+					fs.fsyncSync(fd);
+				} finally {
+					fs.closeSync(fd);
+				}
 				fs.renameSync(tmp, this.file);
 			}
 		}

@@ -17,9 +17,30 @@ node -e 'const [a,b,c]=process.versions.node.split(".").map(Number);process.exit
 [ "$(git -C "$MM_DIR" rev-parse HEAD 2>/dev/null)" = "f138f5b690ceab6450f55c852ac81d268363f563" ] \
 	&& pass "MagicMirror v2.38.0" || warn "MagicMirror is not at the pinned v2.38.0 commit"
 
-for unit in mm-configbridge magicmirror; do
+for unit in mm-configbridge magicmirror mm-health; do
 	systemctl --user is-active --quiet "$unit" && pass "service $unit active" || fail "service $unit not active (journalctl --user -u $unit)"
 done
+
+# --- recovery from freezes
+# Raspberry Pi OS creates /var/log/journal but keeps logs in memory
+# (journald.conf.d/40-rpi-volatile-storage.conf), so look for a log file on disk.
+compgen -G "/var/log/journal/*/system.journal" >/dev/null && pass "logs kept across reboots" || warn "logs are lost at every reboot (no log file under /var/log/journal)"
+wd="$(systemctl show -p RuntimeWatchdogUSec --value 2>/dev/null)"
+case "$wd" in ''|0|infinity) warn "hardware watchdog off" ;; *) pass "hardware watchdog on ($wd)" ;; esac
+
+# --- SD card and power (MMM-Guard shows the same warnings on screen)
+fs_errors=0
+fs_read=0
+for f in /sys/fs/ext4/*/errors_count; do [ -r "$f" ] && { fs_errors=$((fs_errors + $(cat "$f"))); fs_read=$((fs_read + 1)); }; done
+if [ "$fs_read" -eq 0 ]; then warn "SD card check unavailable (no ext4 error counter in /sys/fs/ext4)"
+elif [ "$fs_errors" -eq 0 ]; then pass "SD card: no filesystem errors"
+else fail "SD card: $fs_errors filesystem errors, replace the card (README: Replacing the SD card)"
+fi
+thr="$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)"
+if [ -z "$thr" ]; then warn "power: vcgencmd not available"
+elif (( thr & 0x10001 )); then fail "power: under-voltage ($thr), use the Raspberry Pi 5.1 V 3 A supply"
+else pass "power: no under-voltage since boot ($thr)"
+fi
 
 # --- modules at pinned commits, patches applied
 while read -r -u 3 name url commit npm_mode; do

@@ -23,7 +23,8 @@ for f in \
 	$MM/modules/MMM-TodoList/tasks.json \
 	$MM/modules/MMM-TodoList/members.json \
 	$MM/modules/MMM-GlobeWeatherBridge/data/state.json \
-	$MM/modules/MMM-BluetoothAudio/data/bluetooth.json; do
+	$MM/modules/MMM-BluetoothAudio/data/bluetooth.json \
+	$MM/modules/MMM-YouTubeCast/data/receiver.json; do
 	dest="$OUT${f#$H}"
 	mkdir -p "$(dirname "$dest")"
 	"$S/debugfs" -R "dump $f $dest" "$PART" 2>/dev/null

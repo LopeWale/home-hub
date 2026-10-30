@@ -85,6 +85,9 @@ let config = {
 				rotationHomePage: 0
 			}
 		},
+		// Restarts MagicMirror when the page or GPU process crashes or the page
+		// hangs, instead of leaving a frozen screen (2026-10-26).
+		{ module: "MMM-Guard" },
 		// ---------- top bar, all pages ----------
 		{
 			module: "MMM-TouchNav",

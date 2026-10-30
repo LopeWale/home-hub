@@ -167,10 +167,10 @@ index bbfc7fa..6ad853c 100644
      } else if (notification === "EDIT_TASK") {
 diff --git a/tabs.js b/tabs.js
 new file mode 100644
-index 0000000..ffb1bb6
+index 0000000..e6125d8
 --- /dev/null
 +++ b/tabs.js
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,68 @@
 +// [mm-fridge patch] new file
 +"use strict";
 +
@@ -190,6 +190,20 @@ index 0000000..ffb1bb6
 +    if (oldName !== newName && !current.includes(oldName) && !previous.includes(newName)) out.push([oldName, newName]);
 +  });
 +  return out;
++}
++
++// Temp file, fsync, rename (like save() in todo_handler.py): a power cut
++// leaves the old file or the new one, never a half-written one.
++function writeSynced(file, text) {
++  const tmp = file + ".tmp";
++  const fd = fs.openSync(tmp, "w");
++  try {
++    fs.writeFileSync(fd, text);
++    fs.fsyncSync(fd);
++  } finally {
++    fs.closeSync(fd);
++  }
++  fs.renameSync(tmp, file);
 +}
 +
 +function applyRenames(dir, members) {
@@ -212,15 +226,13 @@ index 0000000..ffb1bb6
 +          console.log("MMM-TodoList: tab renamed '" + oldName + "' -> '" + newName + "', tasks moved");
 +        }
 +      }
-+      fs.writeFileSync(tasksFile + ".tmp", JSON.stringify(tasks, null, 2));
-+      fs.renameSync(tasksFile + ".tmp", tasksFile);
++      writeSynced(tasksFile, JSON.stringify(tasks, null, 2));
 +    } catch (err) {
 +      if (err.code !== "ENOENT") console.error("MMM-TodoList: rename failed: " + err.message);
 +    }
 +  }
 +  try {
-+    fs.writeFileSync(membersFile + ".tmp", JSON.stringify(members));
-+    fs.renameSync(membersFile + ".tmp", membersFile);
++    writeSynced(membersFile, JSON.stringify(members));
 +  } catch (err) {
 +    console.error("MMM-TodoList: could not save members.json: " + err.message);
 +  }
