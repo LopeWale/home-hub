@@ -8,8 +8,9 @@ MM_DIR="${MM_DIR:-$HOME/MagicMirror}"
 MM_DISPLAY_MODE="${MM_DISPLAY_MODE:-auto}" # auto | wayland | x11
 cd "$MM_DIR"
 
-# Planet3D / globe needs WebGL on the GPU. MagicMirror disables the GPU
-# unless this is 1 (js/electron.js). Set MM_DISABLE_GPU=1 to fall back.
+# Draw with the GPU. MagicMirror disables the GPU unless this is 1
+# (js/electron.js). It was turned on for the globe page (removed 2026-10-27)
+# and left on so Cast video plays as before. Set MM_DISABLE_GPU=1 to turn it off.
 if [ "${MM_DISABLE_GPU:-0}" != "1" ]; then
 	export ELECTRON_ENABLE_GPU=1
 fi

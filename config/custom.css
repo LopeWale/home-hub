@@ -630,10 +630,3 @@ html.ssl-dragging .region.fullscreen.below .module {
   border-bottom: 2px solid var(--ink);
   color: var(--ink-soft);
 }
-
-/* ---------- page 3: globe, weather, news ---------- */
-
-.region.fullscreen.below .module.MMM-GlobeWeatherBridge {
-  flex: 1 1 auto;
-  overflow: hidden;
-}

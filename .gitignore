@@ -6,7 +6,6 @@ mm.env
 
 # Runtime data written by modules on the Pi
 modules/*/data/
-modules/MMM-GlobeWeatherBridge/vendor/
 tasks.json
 members.json
 

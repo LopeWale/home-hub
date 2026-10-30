@@ -13,10 +13,7 @@
 
 // Optional features. Flip to true once the hardware or service exists.
 const FEATURES = {
-	youtubeCast: true, // Phones cast from the YouTube app (MMM-YouTubeCast). See README.
-	// Google's photorealistic 3D Earth on the globe page. Needs GOOGLE_MAPS_BROWSER_KEY
-	// in config.env (see README). false, or no key, shows the simple globe instead.
-	googleEarth: true
+	youtubeCast: true // Phones cast from the YouTube app (MMM-YouTubeCast). See README.
 };
 
 // Calendar feeds from config.env. A feed whose env var is missing is skipped.
@@ -74,8 +71,7 @@ let config = {
 					// Entries are module names or classes; the two dividers are told apart by class.
 					["MMM-MyGCalendar", "split-home", "MMM-TodoList"], // 0 Home
 					["MMM-YouTubeCast"], // 1 Cast
-					["MMM-MyScoreboard", "split-sports", "MMM-GameDetails"], // 2 Sports
-					["MMM-GlobeWeatherBridge"] // 3 Globe (weather, air quality, news in its own panel)
+					["MMM-MyScoreboard", "split-sports", "MMM-GameDetails"] // 2 Sports
 				],
 				// Setting fixed replaces the default, so MMM-page-indicator is listed again.
 				fixed: ["MMM-page-indicator", "MMM-TouchNav", "MMM-BluetoothAudio", "MMM-GuestNet", "MMM-SmartTouch", "MMM-Keyboard"],
@@ -93,7 +89,7 @@ let config = {
 			module: "MMM-TouchNav",
 			position: "top_left",
 			config: {
-				pageTitles: ["Home", "Cast", "Sports", "Globe"],
+				pageTitles: ["Home", "Cast", "Sports"],
 				homePage: 0,
 				castPage: 1
 			}
@@ -209,31 +205,6 @@ let config = {
 			position: "fullscreen_below",
 			order: 3,
 			config: {}
-		},
-
-		// ---------- page 3: globe, weather, air quality, news ----------
-		{
-			module: "MMM-GlobeWeatherBridge",
-			position: "fullscreen_below",
-			order: 1,
-			config: {
-				renderer: FEATURES.googleEarth ? "google3d" : "globegl",
-				// Browser key for Google's 3D Earth (NOT a SECRET_: the browser must see it).
-				// Restrict it in Google Cloud to http://localhost:8080/* and to the
-				// Maps JavaScript API + Map Tiles API. Weather, air quality, place names
-				// and search use SECRET_GOOGLE_MAPS_KEY on the Pi instead.
-				browserKey: "${GOOGLE_MAPS_BROWSER_KEY}",
-				// Home: coordinates, else the address, else found automatically (Wi-Fi, then internet).
-				// All three may be left empty; the admin page can set or correct home later.
-				home: { label: "Home", address: "${HOME_ADDRESS}", lat: Number("${HOME_LAT}"), lng: Number("${HOME_LNG}") },
-				autoLocate: true,
-				pins: [],
-				geocoder: "google", // falls back to Open-Meteo (place names only) without SECRET_GOOGLE_MAPS_KEY
-				units: "imperial",
-				weatherRefreshMin: 30, // 3 Weather API calls per refresh; 30 min keeps inside Google's free 10,000/month
-				autoRotate: true, // simple globe only
-				maxFps: 30 // simple globe only
-			}
 		}
 	].filter(Boolean)
 };

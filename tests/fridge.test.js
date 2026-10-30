@@ -1,14 +1,11 @@
-/* Unit tests for the guest Wi-Fi QR string, the globe page's Google response
- * parsing, the news feed parser and the bridge migration (no network).
- * Run: node --test tests/fridge.test.js
- * Fixtures follow the response examples in Google's Weather, Air Quality and
- * Geocoding API documentation (fetched 2026-10-03). */
+/* Unit tests for the guest Wi-Fi QR string, the bridge migration, Bluetooth
+ * parsing, the sports team picker and game panel and the todo tabs (no network).
+ * Run: node --test tests/fridge.test.js */
 "use strict";
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { wifiString } = require("../modules/MMM-GuestNet/wifiqr");
-const p = require("../modules/MMM-GlobeWeatherBridge/placeinfo");
 const { migrate } = require("../scripts/migrate-bridge");
 
 test("wifiString escapes reserved characters and handles open networks", () => {
@@ -17,95 +14,6 @@ test("wifiString escapes reserved characters and handles open networks", () => {
 	assert.equal(wifiString({ ssid: "Hidden", password: "secret12", hidden: true }), "WIFI:T:WPA;S:Hidden;P:secret12;H:true;;");
 	assert.equal(wifiString({ ssid: "${GUEST_WIFI_SSID}", password: "x" }), null, "unset config.env placeholder");
 	assert.equal(wifiString({ ssid: "" }), null);
-});
-
-test("parseCurrent reads Google current conditions", () => {
-	const c = p.parseCurrent({
-		timeZone: { id: "America/Los_Angeles" },
-		isDaytime: true,
-		weatherCondition: { iconBaseUri: "https://maps.gstatic.com/weather/v1/sunny", description: { text: "Sunny", languageCode: "en" }, type: "CLEAR" },
-		temperature: { degrees: 56.6, unit: "FAHRENHEIT" },
-		feelsLikeTemperature: { degrees: 55.7, unit: "FAHRENHEIT" },
-		relativeHumidity: 42,
-		uvIndex: 1,
-		precipitation: { probability: { percent: 0, type: "RAIN" } },
-		wind: { direction: { degrees: 335, cardinal: "NORTH_NORTHWEST" }, speed: { value: 5, unit: "MILES_PER_HOUR" } },
-		currentConditionsHistory: { maxTemperature: { degrees: 57.8, unit: "FAHRENHEIT" }, minTemperature: { degrees: 38.6, unit: "FAHRENHEIT" } }
-	});
-	assert.deepEqual(c, {
-		timeZone: "America/Los_Angeles", temp: 57, unit: "°F", feels: 56, text: "Sunny",
-		icon: "https://maps.gstatic.com/weather/v1/sunny.svg", isDay: true, humidity: 42, uv: 1, rain: 0,
-		wind: 5, windUnit: "mph", windFrom: "NNW", high: 58, low: 39
-	});
-});
-
-test("parseDays and parseHours read Google forecasts", () => {
-	const days = p.parseDays({ forecastDays: [{
-		displayDate: { year: 2025, month: 2, day: 10 },
-		daytimeForecast: { weatherCondition: { type: "PARTLY_CLOUDY", description: { text: "Partly sunny" } }, precipitation: { probability: { percent: 5 } } },
-		maxTemperature: { degrees: 13.3, unit: "CELSIUS" },
-		minTemperature: { degrees: 1.5, unit: "CELSIUS" }
-	}] });
-	assert.deepEqual(days, [{ sunrise: null, sunset: null, moonPhase: null, date: { y: 2025, m: 2, d: 10 }, high: 13, low: 2, icon: null, text: "Partly sunny", rain: 5 }]);
-	const sunDay = p.parseDays({ forecastDays: [{ sunEvents: { sunriseTime: "2025-02-10T15:02:35Z", sunsetTime: "2025-02-11T01:43:00Z" }, moonEvents: { moonPhase: "WAXING_GIBBOUS" } }] })[0];
-	assert.equal(sunDay.sunrise, "2025-02-10T15:02:35Z");
-	assert.equal(sunDay.moonPhase, "WAXING_GIBBOUS");
-	const hours = p.parseHours({ forecastHours: [{
-		interval: { startTime: "2025-02-05T23:00:00Z" },
-		displayDateTime: { year: 2025, month: 2, day: 5, hours: 15 },
-		weatherCondition: { iconBaseUri: "https://maps.gstatic.com/weather/v1/sunny", description: { text: "Sunny" } },
-		temperature: { degrees: 12.7, unit: "CELSIUS" },
-		precipitation: { probability: { percent: 0 } }
-	}] });
-	assert.equal(hours[0].hour, 15);
-	assert.equal(hours[0].temp, 13);
-	assert.equal(hours[0].icon, "https://maps.gstatic.com/weather/v1/sunny.svg");
-	assert.deepEqual(p.parseDays({}), []);
-});
-
-test("parseAir prefers the local index and builds a hex color", () => {
-	const air = p.parseAir({ indexes: [
-		{ code: "uaqi", displayName: "Universal AQI", aqi: 70, aqiDisplay: "70", color: { red: 0.4, green: 0.8, blue: 0.2 }, category: "Good air quality", dominantPollutant: "o3" },
-		{ code: "usa_epa", displayName: "AQI (US)", aqi: 42, aqiDisplay: "42", color: { green: 0.89 }, category: "Good air quality", dominantPollutant: "o3" }
-	] });
-	assert.deepEqual(air, { name: "AQI (US)", aqi: "42", category: "Good air quality", dominant: "O3", color: "#00e300" });
-	assert.equal(p.parseAir({ indexes: [] }), null);
-});
-
-test("parseReverse names a place and builds the news query", () => {
-	const r = (comps) => ({ results: [{ address_components: comps }] });
-	const paris = p.parseReverse(r([
-		{ long_name: "Paris", short_name: "Paris", types: ["locality", "political"] },
-		{ long_name: "Île-de-France", short_name: "IDF", types: ["administrative_area_level_1", "political"] },
-		{ long_name: "France", short_name: "FR", types: ["country", "political"] }
-	]));
-	assert.deepEqual(paris, { label: "Paris", area: "Île-de-France, France", newsQuery: "Paris France", locality: "Paris", region: "Île-de-France", country: "France", countryCode: "FR" });
-	const okc = p.parseReverse(r([
-		{ long_name: "Oklahoma City", short_name: "Oklahoma City", types: ["locality"] },
-		{ long_name: "Oklahoma", short_name: "OK", types: ["administrative_area_level_1"] },
-		{ long_name: "United States", short_name: "US", types: ["country"] }
-	]));
-	assert.equal(okc.newsQuery, "Oklahoma City Oklahoma");
-	assert.deepEqual(p.parseReverse(r([{ long_name: "Pacific Ocean", short_name: "Pacific Ocean", types: ["natural_feature"] }])), { label: "Pacific Ocean", area: "", newsQuery: "Pacific Ocean", locality: "", region: "", country: "", countryCode: "" });
-	assert.equal(p.parseReverse({ results: [] }), null);
-});
-
-test("parseNewsRss strips the source suffix and decodes entities", () => {
-	const xml = "<rss><channel><item><title>Rain &amp; wind hit &quot;OKC&quot; - KOCO</title><link>https://x</link>" +
-		"<pubDate>Sat, 03 Oct 2026 15:32:00 GMT</pubDate><source url=\"https://koco.com\">KOCO</source></item>" +
-		"<item><title><![CDATA[Second story]]></title><pubDate>bad date</pubDate></item></channel></rss>";
-	assert.deepEqual(p.parseNewsRss(xml, 5), [
-		{ title: "Rain & wind hit \"OKC\"", source: "KOCO", published: "2026-10-03T15:32:00.000Z" },
-		{ title: "Second story", source: "", published: null }
-	]);
-	assert.equal(p.parseNewsRss(xml, 1).length, 1);
-});
-
-test("googleError turns API failures into plain sentences", () => {
-	assert.match(p.googleError("Weather API", 403, { error: { message: "Weather API has not been used in project 1 before or it is disabled.", status: "PERMISSION_DENIED" } }), /not enabled for this Google key/);
-	assert.match(p.googleError("Weather API", 400, { error: { message: "API key not valid. Please pass a valid API key." } }), /not valid/);
-	assert.match(p.googleError("Weather API", 404, { error: { message: "Information is not supported for this location." } }), /no data for this location/);
-	assert.match(p.googleError("Air Quality API", 500, null), /HTTP 500/);
 });
 
 test("migrate copies guest Wi-Fi settings once and keeps the old entry", () => {
@@ -178,21 +86,6 @@ test("team picker parses ESPN team lists", () => {
 	assert.deepEqual(parseTeams({}), []);
 	assert.equal(LEAGUES.NCAAF, "football/college-football");
 	assert.equal(LEAGUES.CFL, undefined, "CFL comes from Sportsnet, not ESPN");
-});
-
-test("Wikipedia and Wikidata parsing for the place panel", () => {
-	assert.deepEqual(p.parseWikiSummary({ type: "standard", title: "Norman, Oklahoma", description: "City in Oklahoma", extract: "Norman is a city.", thumbnail: { source: "https://upload.wikimedia.org/x.jpg" } }),
-		{ title: "Norman, Oklahoma", description: "City in Oklahoma", extract: "Norman is a city.", image: "https://upload.wikimedia.org/x.jpg" });
-	assert.equal(p.parseWikiSummary({ type: "disambiguation", title: "Norman", extract: "Norman may refer to" }), null);
-	assert.equal(p.parseWikiSummary({ type: "standard", title: "X", extract: "y", thumbnail: { source: "https://evil.example/x.jpg" } }).image, null, "only Wikimedia images");
-	assert.deepEqual(p.parseGeosearch({ query: { geosearch: [{ title: "Eiffel Tower", lat: 48.858, lon: 2.294, dist: 20.4 }, { title: "Paris", lat: 48.85, lon: 2.35, dist: 4000 }] } }, "Paris"),
-		[{ title: "Eiffel Tower", lat: 48.858, lng: 2.294, meters: 20 }]);
-	assert.equal(p.flagEmoji("FR"), "\u{1F1EB}\u{1F1F7}");
-	const b = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, { value: v }]));
-	const c = p.parseCountry({ results: { bindings: [b({ countryLabel: "France", capitalLabel: "Paris", population: "68605616", currencyLabel: "euro", languageLabel: "French" }), b({ countryLabel: "France", capitalLabel: "Paris", population: "67000000", currencyLabel: "Q4916", languageLabel: "French" })] } }, "FR");
-	assert.deepEqual(c, { code: "FR", flag: "\u{1F1EB}\u{1F1F7}", name: "France", capital: "Paris", population: 68605616, currencies: ["euro"], languages: ["French"] });
-	const many = p.parseCountry({ results: { bindings: ["Spanish", "Chamorro", "Hawaiian", "Samoan"].map((l) => b({ countryLabel: "United States", languageLabel: l })) } }, "US");
-	assert.deepEqual(many.languages, [], "more than three official languages are not shown");
 });
 
 test("ESPN game summary parsing for the sports panel", () => {

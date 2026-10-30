@@ -17,7 +17,6 @@ except where stated: `install.sh` downloads each piece at the pinned version.
 | [MMM-MyScoreboard](https://github.com/dathbe/MMM-MyScoreboard) | commit 6318b28 | MIT | © dathbe |
 | [yt-cast-receiver](https://github.com/patrickkfkan/yt-cast-receiver) (npm dependency of MMM-YouTubeCast) | commit 83d61fa | MIT | patrickkfkan |
 | [qrcode](https://www.npmjs.com/package/qrcode) (npm dependency of MMM-GuestNet) | 1.5.4 | MIT | Ryan Day |
-| [globe.gl](https://github.com/vasturiano/globe.gl) and three-globe (fetched by `scripts/fetch-globe-assets.sh`, licenses copied next to them) | see script | MIT | Vasco Asturiano |
 
 ## Patches in `patches/`
 
@@ -34,7 +33,5 @@ copyright notices above.
 
 ## Services used at runtime
 
-Google Maps Platform (Weather, Air Quality, Geocoding, Geolocation, Time Zone,
-Maps JavaScript 3D maps), ESPN's public scoreboard and game summary feeds,
-Google News RSS search, Wikipedia and Wikidata. Their terms of service apply to
-your use; the ESPN and Google News feeds are unofficial and may change.
+ESPN's public scoreboard and game summary feeds. Their terms of service apply to
+your use; the feeds are unofficial and may change.

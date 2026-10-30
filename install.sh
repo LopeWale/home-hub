@@ -13,7 +13,7 @@
 #   --no-services      skip systemd, linger and labwc steps (container tests only)
 #
 # Safe to re-run. Existing config.env, config.bridge.json, bridge.env, todo
-# data and globe pins are kept; replaced config files are backed up first.
+# data is kept; replaced config files are backed up first.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -156,7 +156,6 @@ mkdir -p "$BACKUP_DIR"
 chmod 700 "$STATE_DIR" "$STATE_DIR/backups" 2>/dev/null || true
 for f in \
 	"$MM_DIR/modules/MMM-TodoList/tasks.json" \
-	"$MM_DIR/modules/MMM-GlobeWeatherBridge/data/state.json" \
 	"$MM_DIR/config/config.js" "$MM_DIR/config/custom.css" \
 	"$MM_DIR/config/config.bridge.json" "$MM_DIR/config/config.env"; do
 	[ -f "$f" ] && cp -p "$f" "$BACKUP_DIR/$(basename "$(dirname "$f")")__$(basename "$f")"
@@ -221,7 +220,6 @@ for m in "$REPO_DIR"/modules/*/; do
 		(cd "$MM_DIR/modules/$name" && npm ci --omit=dev --no-audit --no-fund --loglevel=error) || die "$name: npm ci failed"
 	fi
 done
-bash "$REPO_DIR/scripts/fetch-globe-assets.sh" "$MM_DIR/modules/MMM-GlobeWeatherBridge"
 
 # ---------------------------------------------------------------- config
 say "Installing config"

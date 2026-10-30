@@ -22,7 +22,6 @@ for f in \
 	$H/.config/magicmirror/mm.env \
 	$MM/modules/MMM-TodoList/tasks.json \
 	$MM/modules/MMM-TodoList/members.json \
-	$MM/modules/MMM-GlobeWeatherBridge/data/state.json \
 	$MM/modules/MMM-BluetoothAudio/data/bluetooth.json \
 	$MM/modules/MMM-YouTubeCast/data/receiver.json; do
 	dest="$OUT${f#$H}"

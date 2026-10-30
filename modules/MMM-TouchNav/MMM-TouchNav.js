@@ -14,7 +14,7 @@
  */
 Module.register("MMM-TouchNav", {
 	defaults: {
-		pageTitles: ["Home", "Cast", "Sports", "Globe"],
+		pageTitles: ["Home", "Cast", "Sports"],
 		homePage: 0,
 		castPage: 1,
 		idleCheckMs: 15 * 1000, // how often shouldReturnHome() is asked
@@ -23,7 +23,7 @@ Module.register("MMM-TouchNav", {
 		swipeMaxOffAxis: 80, // px of vertical drift allowed
 		swipeMaxMs: 700,
 		// Swipes that start inside these never change page.
-		noSwipeSelectors: [".MMM-GlobeWeatherBridge", ".MMM-MyGCalendar", ".msl-handle", ".MMM-Keyboard", "#kbContainer", ".gcal-modal-backdrop", ".gcal-picker-backdrop", ".gn-backdrop", ".bta-backdrop", "input", "textarea", "select", "[data-no-swipe]"]
+		noSwipeSelectors: [".MMM-MyGCalendar", ".msl-handle", ".MMM-Keyboard", "#kbContainer", ".gcal-modal-backdrop", ".gcal-picker-backdrop", ".gn-backdrop", ".bta-backdrop", "input", "textarea", "select", "[data-no-swipe]"]
 	},
 
 	getStyles () {

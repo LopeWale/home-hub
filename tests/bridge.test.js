@@ -104,7 +104,7 @@ test("schemas: sports league must be a code the scoreboard module supports", () 
 });
 
 test("every schema file parses and declares an object config", () => {
-	assert.deepEqual(Object.keys(bridge.SCHEMAS).sort(), ["MMM-GlobeWeatherBridge", "MMM-GuestNet", "MMM-MyGCalendar", "MMM-MyScoreboard", "MMM-TodoList"]);
+	assert.deepEqual(Object.keys(bridge.SCHEMAS).sort(), ["MMM-GuestNet", "MMM-MyGCalendar", "MMM-MyScoreboard", "MMM-TodoList"]);
 	for (const [name, schema] of Object.entries(bridge.SCHEMAS)) {
 		assert.equal(schema.config.type, "object", name);
 	}

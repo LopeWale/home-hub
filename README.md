@@ -1,7 +1,7 @@
 # Home Hub
 
 A wall-mounted touch screen hub for the household, built on [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror) and a Raspberry Pi 4, in a 3D printed enclosure.
-Shared calendar, to-do lists, YouTube casting, live sports, a 3D globe with weather and local news, a guest Wi-Fi QR code, and a Bluetooth speaker, all in a calm "paper" look that reads like an e-book instead of a glowing screen.
+Shared calendar, to-do lists, YouTube casting, live sports, a guest Wi-Fi QR code, and a Bluetooth speaker, all in a calm "paper" look that reads like an e-book instead of a glowing screen.
 
 <!-- Photo to add: docs/images/hero.jpg (see docs/images/README.md). Uncomment the line(s) below once added. -->
 <!-- ![Home Hub on the wall](docs/images/hero.jpg) -->
@@ -29,26 +29,25 @@ Shared calendar, to-do lists, YouTube casting, live sports, a 3D globe with weat
 
 ## What it does
 
-Four pages. Swipe or tap the dots at the top to move between them.
+Three pages. Swipe or tap the dots at the top to move between them.
 
 | Page | What you see |
 |---|---|
 | **Home** | A paper wall planner calendar (Month, Week and Day views) beside to-do lists with tabs. A drag divider sets the split. |
 | **Cast** | Cast YouTube from any phone's YouTube app. The video plays full screen and the hub opens this page by itself. |
 | **Sports** | Live scores for your teams, and a details panel for the game you tap: win chance, betting line, team stats, scoring plays, leaders or lineups, injuries, standings and news. |
-| **Globe** | Google's photorealistic 3D Earth (or a simple globe). Double-tap anywhere for that place's weather, air quality, local time, sunrise and moon, a short "about", nearby places, country facts and local news. |
 
 On every page, the top bar has a Bluetooth speaker icon and a small network icon. Tap the network icon for a guest Wi-Fi QR code that visitors can scan to join.
 
 | Home | Cast |
 |---|---|
 | ![Home page: calendar and to-do lists](docs/images/screen-home.png) | ![Cast page](docs/images/screen-cast.png) |
-| **Sports** | **Globe** |
-| ![Sports page: scores and game details](docs/images/screen-sports.png) | ![Globe page: Google 3D Earth and the place panel](docs/images/screen-globe.jpg) |
+| **Sports** | |
+| ![Sports page: scores and game details](docs/images/screen-sports.png) | |
 
-*Screenshots from the running hub. Personal calendar entries, to-do items, saved places and the cast code are blurred.*
+*Screenshots from the running hub. Personal calendar entries, to-do items and the cast code are blurred.*
 
-A private admin page (reached over [Tailscale](https://tailscale.com) only) edits calendars, to-do tab names, sports teams, the guest Wi-Fi and the globe's places, from your phone.
+A private admin page (reached over [Tailscale](https://tailscale.com) only) edits calendars, to-do tab names, sports teams and the guest Wi-Fi, from your phone.
 
 <!-- Photo to add: docs/images/admin-page.png (see docs/images/README.md). Uncomment the line(s) below once added. -->
 <!-- ![Admin page](docs/images/admin-page.png) -->
@@ -136,7 +135,7 @@ You need a Raspberry Pi 4 with **Raspberry Pi OS (64-bit) with desktop**, and a 
    ```
    Use `bash install.sh`, not `sudo`; it asks for your password when it needs it. It installs Node 24 and Tailscale, MagicMirror v2.38.0, the pinned third party modules with this project's patches, the custom modules, the config and the services, and it sets desktop autologin and turns screen blanking off. The MagicMirror step is slow on a Pi (often 10+ minutes).
 3. **Sign the Pi into Tailscale** once: `sudo tailscale up`, then open the link it prints. Install Tailscale on your phone with the same account.
-4. **Add your keys** to `~/MagicMirror/config/config.env` (see [Google keys](#google-keys)).
+4. **Add your calendar addresses** to `~/MagicMirror/config/config.env` (see [Calendars](#calendars)), or add them later on the admin page.
 5. **Reboot:** `sudo reboot`. The Pi logs into the desktop and Home Hub starts full screen.
 6. **Check:** `~/MagicMirrorCode/scripts/verify.sh`. Every line should say PASS.
 
@@ -158,21 +157,6 @@ Do this when the screen shows "SD card errors", `verify.sh` fails its SD card ch
 
 ## Configuration
 
-### Google keys
-
-Two keys, from Google Cloud Console > APIs & Services > Credentials:
-
-| Key in `config.env` | Used for | Enable and restrict it to |
-|---|---|---|
-| `SECRET_GOOGLE_MAPS_KEY` | Weather, air quality, place names and time zones. Only used on the Pi, never sent to the screen. | Geocoding, Geolocation, Weather, Air Quality and Time Zone APIs. If the key has API restrictions, tick each of these in the key's own list. |
-| `GOOGLE_MAPS_BROWSER_KEY` | The 3D Earth on the Globe page. The screen's browser has to load it, which is how Google's maps work. | Maps JavaScript API and Map Tiles API. Application restriction: Websites, `http://localhost:8080/*` |
-
-The browser key is locked to the Pi's own page address and to the two map APIs, so a copy of it cannot call anything else. MagicMirror only listens on localhost.
-
-Free monthly use (Google Maps Platform pricing, checked October 2026): Weather, Air Quality, Geocoding and Time Zone 10,000 calls each; 3D maps 5,000 loads. Home Hub caches results, refreshes the shown place's weather every 30 minutes and has daily caps, so normal use stays well inside these.
-
-Without a browser key, or with `googleEarth: false` in `config/config.js`, the Globe page shows a simple globe instead.
-
 ### Calendars
 
 Each calendar is a secret iCal address (Google Calendar > Settings > the calendar > "Secret address in iCal format"). Put them in `config.env` (`SECRET_CAL_FAMILY`, `SECRET_CAL_ME`, `SECRET_CAL_PARTNER`, ...) or add them later on the admin page. iCal addresses are passwords: they stay on the Pi and are masked on the admin page.
@@ -182,15 +166,8 @@ Each calendar is a secret iCal address (Google Calendar > Settings > the calenda
 - Open `http://<pi-tailscale-ip>:8081/admin` from a phone or computer on your Tailscale network. The installer prints the address.
 - The token is `BRIDGE_TOKEN` in `~/.config/mm-configbridge/bridge.env`. Paste it once per device.
 - It listens only on the Pi's Tailscale address, never on your home network or the internet.
-- You can edit: to-do tab names, calendars and their colors, the default calendar view, sports leagues and teams (searchable by team name), the guest Wi-Fi, the globe's home and pins, units and weather refresh.
+- You can edit: to-do tab names, calendars and their colors, the default calendar view, sports leagues and teams (searchable by team name), and the guest Wi-Fi.
 - Every save is checked, backed up, applied, and rolled back automatically if MagicMirror does not come back.
-
-### Home location
-
-Used for the globe's Home pin and the first weather shown. Home Hub takes the first that works:
-1. Latitude and longitude from the admin page or `HOME_LAT` / `HOME_LNG`.
-2. An address from the admin page or `HOME_ADDRESS`.
-3. Automatic: nearby Wi-Fi networks through Google's Geolocation API, otherwise your internet connection's approximate location.
 
 ### Secrets
 
@@ -228,11 +205,6 @@ Used for the globe's Home pin and the first weather shown. Home Hub takes the fi
 - Pick leagues and teams on the admin page. Games appear as a grid that fits the left side; drag the divider to make room.
 - Tap a game for its details on the right. With nothing tapped, the panel follows a live game.
 
-### Globe
-
-- Double-tap anywhere on the Earth to explore that place. **Search**, **Home** and **Whole Earth** buttons at the top.
-- Save places as pins from the panel, or on the admin page.
-
 ---
 
 ## How it is built
@@ -245,7 +217,6 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 | `modules.lock` | The third party modules, pinned to exact commits. |
 | `patches/` | Fixes applied to those modules after checkout (see below). |
 | `config/` | `config.js` (pages and modules), `custom.css` (the paper theme), the Literata font, and templates for `config.env` and the admin settings. |
-| `modules/MMM-GlobeWeatherBridge` | The Globe page: Google 3D Earth or a simple globe, pins, search, and the place panel. |
 | `modules/MMM-GameDetails` | The Sports page's details panel (ESPN game summaries). |
 | `modules/MMM-YouTubeCast` | The YouTube cast receiver and Cast page. |
 | `modules/MMM-BluetoothAudio` | The Bluetooth speaker icon and popup (BlueZ and PipeWire). |
@@ -255,7 +226,7 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 | `modules/MMM-Guard` | Restarts MagicMirror when the page or GPU process crashes or the page hangs, instead of leaving a frozen screen. Shows a warning strip when the SD card has errors, the power supply is too weak, or the disk is nearly full. |
 | `config-bridge/` | The admin page server (Node, no npm dependencies). |
 | `system/` | systemd user services and the desktop autostart hook. |
-| `scripts/` | Deploy, verify, diagnostics, globe asset download, and SD card backup and restore helpers. |
+| `scripts/` | Deploy, verify, diagnostics, and SD card backup and restore helpers. |
 | `hardware/` | The 3D printable enclosure and its assembly guides. |
 | `tests/` | Unit tests: `node --test tests/*.test.js` |
 
@@ -274,14 +245,13 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 
 - **Paper look.** Warm paper, black ink and the Literata e-book typeface instead of the usual dark mirror style, so it reads like a printed planner. The Electron window is solid, not transparent.
 - **Pages fill the screen** (`fullscreen_below`) rather than MagicMirror's centered regions, so popups and dividers work across the whole screen.
-- **Secrets stay on the Pi.** The only key the screen sees is the restricted map key, because Google's 3D maps load in the browser.
+- **Secrets stay on the Pi.** No key is sent to the screen.
 - **The admin page is Tailscale-only** and needs a token, with optional extra checks (allowed Tailscale users, HTTP basic auth).
 - **systemd user services instead of pm2.** MagicMirror starts from the desktop session so it always has the display; the admin page runs separately so it keeps working even if a MagicMirror config is broken.
-- **Weather is Google's Weather API**, fetched on the Pi. Google has no weather data for a few countries; the panel says so there.
-- **News** comes from the public Google News search feed for the place's name. There is no official Google news API, so it may change without notice.
 - **Casting** uses [yt-cast-receiver](https://github.com/patrickkfkan/yt-cast-receiver): YouTube app discovery on the same Wi-Fi, plus "Link with TV code" pairing.
 - **Electron 44.5.1.** MagicMirror 2.38.0 ships Electron 44.4.5, which can flash and then blank the screen on Raspberry Pi OS trixie ([MagicMirror #4287](https://github.com/MagicMirrorOrg/MagicMirror/issues/4287)). The installer upgrades it; remove the pin once MagicMirror releases a version with 44.5.1.
 - **Stay on Wayland (labwc).** Raspberry Pi's documentation advises against switching to X11, which is no longer developed ([Raspberry Pi configuration docs](https://www.raspberrypi.com/documentation/computers/configuration.html)).
+- **No Globe page** (Emmanuel's decision, 2026-10-27: barely used). It held Google's 3D Earth, air quality and local news, and it was the only page that drew 3D graphics (WebGL). The Google browser key went with it. Its saved pins are in git history and in the SD card backup.
 - **Recovering from freezes** (decided by Claude, 2026-10-26, after the Pi froze for over a day). Each layer catches a different failure; each is undone by removing one file.
   - *Hung kernel or system:* the Pi 4's hardware watchdog reboots it after 15 s without a response. Off by default in systemd ([systemd-system.conf](https://www.freedesktop.org/software/systemd/man/257/systemd-system.conf.html), `RuntimeWatchdogSec=`); 15 s is inside the Pi 4 watchdog's limit of about 16 s ([bcm2835_wdt.c](https://github.com/raspberrypi/linux/blob/rpi-6.12.y/drivers/watchdog/bcm2835_wdt.c)). File: `/etc/systemd/system.conf.d/90-mm-fridge-watchdog.conf`.
   - *Crashed, killed or hung screen while the Pi still runs:* MagicMirror 2.38 has no handler for this ([js/electron.js](https://github.com/MagicMirrorOrg/MagicMirror/blob/v2.38.0/js/electron.js)), so `MMM-Guard` exits on Electron's `render-process-gone`, a GPU `child-process-gone`, or 60 s of `unresponsive` ([Electron webContents](https://www.electronjs.org/docs/latest/api/web-contents), [app](https://www.electronjs.org/docs/latest/api/app)), and systemd restarts MagicMirror. Remove `{ module: "MMM-Guard" }` from `config.js` to undo.
@@ -294,7 +264,6 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 ## Known issues
 
 - **Short screen dropouts when the monitor is powered from the Pi.** The Pi can give its USB devices about 6 W in total, and the INNOCN N1F Pro is rated up to 30 W. A screen-capture test on the Pi showed its picture steady while the monitor dropped out, and the Pi logged under-voltage when the monitor was plugged in. Wire it as in [Wiring and power](#wiring-and-power).
-- **3D Earth sometimes shows grey on the Pi.** The Google map loads but does not draw the Earth. Still under investigation; the simple globe (`googleEarth: false`) works.
 - **The Pi 4's Bluetooth and 2.4 GHz Wi-Fi share one radio.** If casting to a Bluetooth speaker stutters, keep the speaker close or use 5 GHz Wi-Fi.
 
 ---
@@ -307,7 +276,6 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 | Screen dropouts or flicker | Check the power wiring first, then `vcgencmd get_throttled` (anything other than `throttled=0x0` means under-voltage has happened). `scripts/diagnose-display.sh` collects the usual checks. |
 | "Cannot enable. Maybe the USB cable is bad?" at boot | The touch cable is in a blue USB 3 port and the monitor's USB 3 link fails. Move it to a black USB 2 port. |
 | Admin page unreachable | `tailscale status` on the Pi, and `journalctl --user -u mm-configbridge`. |
-| Weather panel says a key is not allowed | Tick the API in the key's API restrictions in Google Cloud Console. |
 | It froze or restarted by itself | After it is back: `journalctl -b -1 -p warning` (the boot before), `journalctl --user -u magicmirror -b -1 \| grep -i guard` (screen restarts), and `bash ~/.local/share/magicmirror/health-log.sh --summary` (memory and temperature by the hour, and how much was written to the SD card). |
 | Back up before re-imaging the card | `scripts/save-pi-data.sh` copies keys and saved data off the SD card on a Mac, read-only; `scripts/restore-pi-data.sh` puts them back after a fresh install. See [Replacing the SD card](#replacing-the-sd-card). |
 | Strip at the bottom: "SD card errors" | The card is failing. Replace it soon: [Replacing the SD card](#replacing-the-sd-card). |

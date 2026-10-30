@@ -54,13 +54,12 @@ while read -r -u 3 name url commit npm_mode; do
 		pass "$name pinned"
 	fi
 done 3< "$REPO_DIR/modules.lock"
-[ -f "$MM_DIR/modules/MMM-GlobeWeatherBridge/vendor/globe.gl.min.js" ] && pass "globe.gl vendored" || fail "globe assets missing (scripts/fetch-globe-assets.sh)"
 
 # --- MagicMirror HTTP and secret hygiene
 if curl -fsS -o /dev/null "$MM_URL/"; then
 	pass "MagicMirror answers on $MM_URL"
 	cfg="$(curl -fsS "$MM_URL/config/")"
-	for m in MMM-pages MMM-MyGCalendar MMM-TodoList MMM-SplitLayout MMM-GlobeWeatherBridge MMM-GuestNet; do
+	for m in MMM-pages MMM-MyGCalendar MMM-TodoList MMM-SplitLayout MMM-GuestNet; do
 		grep -q "\"$m\"" <<<"$cfg" && pass "config contains $m" || fail "config missing $m"
 	done
 	code="$(curl -s -o /dev/null -w '%{http_code}' "$MM_URL/config/config.env")"
@@ -106,11 +105,6 @@ curl -sI "$MM_URL/" | grep -qi '^referrer-policy: strict-origin-when-cross-origi
 command -v nmcli >/dev/null && pass "nmcli present (network icon)" || warn "nmcli missing: the network icon cannot show Wi-Fi strength"
 if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then pass "Bluetooth on and reachable (speaker icon)"; else warn "Bluetooth off or not reachable by $USER (speaker icon): bluetoothctl show"; fi
 command -v pw-dump >/dev/null && command -v wpctl >/dev/null && pass "PipeWire tools present (Bluetooth sound routing)" || fail "pw-dump or wpctl missing (sudo apt install pipewire-bin wireplumber)"
-if [ -r "$MM_DIR/config/config.env" ] && grep -qE '^[[:space:]]*GOOGLE_MAPS_BROWSER_KEY=.+' "$MM_DIR/config/config.env"; then
-	pass "GOOGLE_MAPS_BROWSER_KEY set (Google 3D Earth)"
-else
-	warn "GOOGLE_MAPS_BROWSER_KEY not set: the globe page shows the simple globe"
-fi
 
 # --- data
 [ -w "$MM_DIR/modules/MMM-TodoList" ] && pass "todo data dir writable" || fail "MMM-TodoList folder not writable"

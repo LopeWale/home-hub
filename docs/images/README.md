@@ -1,8 +1,8 @@
 # Images for the main README
 
 Already here: `enclosure-overview.png` (assembly overview), `assembly-viewer.png`
-(the interactive assembly page), and the four page screenshots `screen-home.png`,
-`screen-cast.png`, `screen-sports.png` and `screen-globe.jpg` (personal details blurred).
+(the interactive assembly page), and the three page screenshots `screen-home.png`,
+`screen-cast.png` and `screen-sports.png` (personal details blurred).
 
 To add. Save each with exactly this name, then uncomment its line in `../../README.md`.
 
@@ -22,8 +22,8 @@ scp pi@homehub.local:/tmp/screen.png docs/images/screen-home.png
 ```
 
 **Before you publish a screenshot, check it for personal details:** calendar event
-names, to-do items, your home address or pin names on the Globe page, the guest
-Wi-Fi password and QR code, the cast TV code, and the admin page token or
+names, to-do items, the guest Wi-Fi password and QR code, the cast TV code, and
+the admin page token or
 Tailscale address. Use sample entries or blur them.
 
 Keep photos under about 1 MB each (JPEG for photos, PNG for screenshots) so the
