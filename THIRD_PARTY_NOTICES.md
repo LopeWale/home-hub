@@ -35,3 +35,7 @@ copyright notices above.
 
 ESPN's public scoreboard and game summary feeds. Their terms of service apply to
 your use; the feeds are unofficial and may change.
+
+Google Weather API (Google Maps Platform), with your own key, for the weather
+line. Google's Maps Platform terms and the Weather API policies apply, including
+the on-screen credit "Source: Includes weather data from Google".

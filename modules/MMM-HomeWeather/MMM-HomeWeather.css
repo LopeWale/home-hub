@@ -1,0 +1,52 @@
+/* Weather line in the 64 px top bar, left of the status icons (paper theme
+ * colors from config/custom.css). The credit hangs below the line so the line
+ * stays centered in the bar. */
+.MMM-HomeWeather {
+  margin-right: 14px;
+}
+
+.MMM-HomeWeather .hw-line {
+  display: flex;
+  position: relative;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.MMM-HomeWeather .hw-icon {
+  width: 30px;
+  height: 30px;
+  filter: grayscale(1) contrast(1.1); /* ink icons on paper */
+}
+
+.MMM-HomeWeather .hw-now {
+  font-size: 28px;
+}
+
+.MMM-HomeWeather .hw-hl {
+  margin-left: 4px;
+  font-size: 20px;
+}
+
+.MMM-HomeWeather .hw-label {
+  color: var(--ink-soft);
+}
+
+.MMM-HomeWeather .hw-credit {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.MMM-HomeWeather .hw-waiting {
+  color: var(--ink-faint);
+  font-size: 16px;
+}
+
+.MMM-HomeWeather .hw-stale {
+  opacity: 0.45;
+}

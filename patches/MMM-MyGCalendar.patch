@@ -2461,7 +2461,7 @@ index 7154812..0d2e9f3 100644
 +  }
  });
 diff --git a/node_helper.js b/node_helper.js
-index 41ffed9..d4b4b0b 100644
+index 41ffed9..6735c1e 100644
 --- a/node_helper.js
 +++ b/node_helper.js
 @@ -6,6 +6,9 @@ module.exports = NodeHelper.create({
@@ -2474,12 +2474,15 @@ index 41ffed9..d4b4b0b 100644
    },
  
    stop() {
-@@ -15,8 +18,16 @@ module.exports = NodeHelper.create({
+@@ -15,8 +18,19 @@ module.exports = NodeHelper.create({
    socketNotificationReceived(notification, payload) {
      if (notification === "GCAL_INIT") {
        this.config = payload;
 +      // [mm-fridge patch] the screen says which days it draws first (the month grid)
 +      this.range = this.parseRange(payload && payload.initialRange);
++      // [mm-fridge patch] a reloaded screen gets the cached feeds at once, even
++      // while a download round is still running
++      if (this.feedCache.length) this.sendEvents();
        this.fetchAll();
        this.scheduleUpdate();
 +    } else if (notification === "GCAL_RANGE" && this.config) {
@@ -2491,38 +2494,37 @@ index 41ffed9..d4b4b0b 100644
      }
    },
  
-@@ -26,30 +37,72 @@ module.exports = NodeHelper.create({
+@@ -26,30 +40,81 @@ module.exports = NodeHelper.create({
      this.updateTimer = setInterval(() => this.fetchAll(), interval);
    },
  
 +  // [mm-fridge patch] download every feed and keep the parsed data. A feed that
 +  // fails to download keeps its last good copy instead of vanishing.
++  // [mm-fridge patch] one round at a time, and a feed that does not answer gives
++  // up after 60 s (node-ical passes these options to axios), so a stuck feed
++  // cannot pile up a new request every interval.
    async fetchAll() {
--    const now = new Date();
--    const windowStart = new Date(now);
--    windowStart.setDate(windowStart.getDate() - 14);
--    const windowEnd = new Date(now);
--    windowEnd.setDate(windowEnd.getDate() + 28);
--
--    const allEvents = [];
--
-+    const fresh = [];
-     for (const cal of this.config.calendars) {
-       try {
--        const events = await this.fetchCalendar(cal, windowStart, windowEnd);
--        allEvents.push(...events);
-+        const data = await ical.async.fromURL(cal.url, {});
-+        fresh.push({ cal, data });
-       } catch (err) {
-         console.error(`[MMM-MyGCalendar] Error fetching "${cal.name}":`, err.message);
-+        const old = this.feedCache.find((f) => f.cal.url === cal.url);
-+        if (old) fresh.push(old);
-       }
-     }
-+    this.feedCache = fresh;
-+    this.sendEvents();
++    if (this.fetching) return;
++    this.fetching = true;
++    try {
++      const fresh = [];
++      for (const cal of this.config.calendars) {
++        try {
++          const data = await ical.async.fromURL(cal.url, { timeout: 60000, signal: AbortSignal.timeout(90000) });
++          fresh.push({ cal, data });
++        } catch (err) {
++          console.error(`[MMM-MyGCalendar] Error fetching "${cal.name}":`, err.message);
++          const old = this.feedCache.find((f) => f.cal.url === cal.url);
++          if (old) fresh.push(old);
++        }
++      }
++      this.feedCache = fresh;
++      this.sendEvents();
++    } finally {
++      this.fetching = false;
++    }
 +  },
- 
++
 +  // [mm-fridge patch] { start, end, id } from the screen, or null when unusable
 +  parseRange(raw) {
 +    if (!raw) return null;
@@ -2539,24 +2541,34 @@ index 41ffed9..d4b4b0b 100644
 +  // [mm-fridge patch] range the screen is showing; default is the original rolling window
 +  currentRange() {
 +    if (this.range) return this.range;
-+    const now = new Date();
+     const now = new Date();
+-    const windowStart = new Date(now);
+-    windowStart.setDate(windowStart.getDate() - 14);
+-    const windowEnd = new Date(now);
+-    windowEnd.setDate(windowEnd.getDate() + 28);
 +    const start = new Date(now);
 +    start.setDate(start.getDate() - 14);
 +    const end = new Date(now);
 +    end.setDate(end.getDate() + 28);
 +    return { start, end, id: 0 };
 +  },
-+
+ 
 +  sendEvents() {
 +    const { start, end, id } = this.currentRange();
-+    const allEvents = [];
+     const allEvents = [];
+-
+-    for (const cal of this.config.calendars) {
 +    for (const { cal, data } of this.feedCache) {
-+      try {
+       try {
+-        const events = await this.fetchCalendar(cal, windowStart, windowEnd);
+-        allEvents.push(...events);
 +        allEvents.push(...this.expandFeed(data, cal, start, end));
-+      } catch (err) {
+       } catch (err) {
+-        console.error(`[MMM-MyGCalendar] Error fetching "${cal.name}":`, err.message);
 +        console.error(`[MMM-MyGCalendar] Error reading "${cal.name}":`, err.message);
-+      }
-+    }
+       }
+     }
+-
      allEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
 -    this.sendSocketNotification("GCAL_EVENTS", allEvents);
 +    // [mm-fridge patch] the same event on two calendars (same title, start and end)
@@ -2577,7 +2589,7 @@ index 41ffed9..d4b4b0b 100644
      const events = [];
  
      for (const key in data) {
-@@ -94,17 +147,27 @@ module.exports = NodeHelper.create({
+@@ -94,17 +159,27 @@ module.exports = NodeHelper.create({
        }
  
        // Use modified recurrence if it exists

@@ -37,7 +37,7 @@ Three pages. Swipe or tap the dots at the top to move between them.
 | **Cast** | Cast YouTube from any phone's YouTube app. The video plays full screen and the hub opens this page by itself. |
 | **Sports** | Live scores for your teams, and a details panel for the game you tap: win chance, betting line, team stats, scoring plays, leaders or lineups, injuries, standings and news. |
 
-On every page, the top bar has a Bluetooth speaker icon and a small network icon. Tap the network icon for a guest Wi-Fi QR code that visitors can scan to join.
+On every page, the top bar has a Bluetooth speaker icon and a small network icon. Tap the network icon for a guest Wi-Fi QR code that visitors can scan to join. On Home, the top bar also shows today's weather: now, then the high and low.
 
 | Home | Cast |
 |---|---|
@@ -135,7 +135,7 @@ You need a Raspberry Pi 4 with **Raspberry Pi OS (64-bit) with desktop**, and a 
    ```
    Use `bash install.sh`, not `sudo`; it asks for your password when it needs it. It installs Node 24 and Tailscale, MagicMirror v2.38.0, the pinned third party modules with this project's patches, the custom modules, the config and the services, and it sets desktop autologin and turns screen blanking off. The MagicMirror step is slow on a Pi (often 10+ minutes).
 3. **Sign the Pi into Tailscale** once: `sudo tailscale up`, then open the link it prints. Install Tailscale on your phone with the same account.
-4. **Add your calendar addresses** to `~/MagicMirror/config/config.env` (see [Calendars](#calendars)), or add them later on the admin page.
+4. **Add your calendar addresses** to `~/MagicMirror/config/config.env` (see [Calendars](#calendars)), or add them later on the admin page. For the weather line, also add your Google key and home location (see [Weather](#weather)).
 5. **Reboot:** `sudo reboot`. The Pi logs into the desktop and Home Hub starts full screen.
 6. **Check:** `~/MagicMirrorCode/scripts/verify.sh`. Every line should say PASS.
 
@@ -160,6 +160,15 @@ Do this when the screen shows "SD card errors", `verify.sh` fails its SD card ch
 ### Calendars
 
 Each calendar is a secret iCal address (Google Calendar > Settings > the calendar > "Secret address in iCal format"). Put them in `config.env` (`SECRET_CAL_FAMILY`, `SECRET_CAL_ME`, `SECRET_CAL_PARTNER`, ...) or add them later on the admin page. iCal addresses are passwords: they stay on the Pi and are masked on the admin page.
+
+### Weather
+
+The weather line (top bar, Home page) comes from the [Google Weather API](https://developers.google.com/maps/documentation/weather/overview). In `config.env`:
+
+- `SECRET_GOOGLE_MAPS_KEY`: a Google key with the Weather API enabled (Google Cloud > APIs & Services). Restrict the key to that API.
+- `HOME_LAT` and `HOME_LNG`: where the weather is for.
+
+The Pi asks Google every 30 minutes (two calls, about 2,900 a month); the key and the location never reach the screen. Without these three there is no weather line. An answer older than 2 hours is drawn faded.
 
 ### Admin page
 
@@ -186,6 +195,7 @@ Each calendar is a secret iCal address (Google Calendar > Settings > the calenda
 - **Week** and **Day** views from the switch at the top.
 - **Swipe** for the next or previous month. **Tap the title** for a month and year picker. **Tap a day** for its agenda, and an event for its details.
 - After 2 minutes without a touch it returns to this month.
+- From any other page, the hub comes back to Home after 5 minutes without a touch (15 with the keyboard or a popup open), but never while a cast is playing.
 - **To-do:** tabs for each list (rename them on the admin page; their tasks follow). Add, tick, edit and delete with the on-screen keyboard.
 - **Divider:** drag it to change the split, or use its buttons to expand either side.
 
@@ -222,7 +232,8 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 | `modules/MMM-BluetoothAudio` | The Bluetooth speaker icon and popup (BlueZ and PipeWire). |
 | `modules/MMM-GuestNet` | The network icon and the guest Wi-Fi QR popup. |
 | `modules/MMM-SplitLayout` | The drag dividers on Home and Sports. |
-| `modules/MMM-TouchNav` | Page titles, swipe between pages, return to Home when idle. |
+| `modules/MMM-TouchNav` | Page titles, swipe between pages, and the return to Home after 5 minutes untouched. |
+| `modules/MMM-HomeWeather` | The weather line on Home (Google Weather API, fetched on the Pi). |
 | `modules/MMM-Guard` | Restarts MagicMirror when the page or GPU process crashes or the page hangs, instead of leaving a frozen screen. Shows a warning strip when the SD card has errors, the power supply is too weak, or the disk is nearly full. |
 | `config-bridge/` | The admin page server (Node, no npm dependencies). |
 | `system/` | systemd user services and the desktop autostart hook. |
@@ -234,10 +245,11 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 
 | Module | What the patch changes |
 |---|---|
-| MMM-MyGCalendar | The screen part is rewritten as the paper planner (Month, Week and Day, swipe, picker, agenda popup) that redraws in place and skips refreshes that change nothing. Fixes edited instances of recurring events west of UTC. Keeps a feed's last good copy if a download fails, and hides duplicate events across calendars. |
+| MMM-MyGCalendar | The screen part is rewritten as the paper planner (Month, Week and Day, swipe, picker, agenda popup) that redraws in place and skips refreshes that change nothing. Fixes edited instances of recurring events west of UTC. Keeps a feed's last good copy if a download fails, gives up on a feed after 60 s, never starts a second download round while one is running, and hides duplicate events across calendars. |
 | MMM-TodoList | Fixes edits and deletes hitting the wrong task once a task was done, and the screen not refreshing. Pre-fills the keyboard when editing. Saves safely. Renamed tabs keep their tasks. |
 | MMM-MyScoreboard | Tags each game with its ESPN id so the details panel can load it; lists a game between two followed teams once. |
 | MMM-SmartTouch | Shutdown and restart use `sudo -n`. |
+| MMM-pages | Two page changes less than 125 ms apart (two quick taps, or a swipe and a tap) no longer leave both pages on screen, such as the Sports scores beside the calendar. Only the latest change shows its modules. |
 
 ---
 
@@ -252,6 +264,8 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 - **Electron 44.5.1.** MagicMirror 2.38.0 ships Electron 44.4.5, which can flash and then blank the screen on Raspberry Pi OS trixie ([MagicMirror #4287](https://github.com/MagicMirrorOrg/MagicMirror/issues/4287)). The installer upgrades it; remove the pin once MagicMirror releases a version with 44.5.1.
 - **Stay on Wayland (labwc).** Raspberry Pi's documentation advises against switching to X11, which is no longer developed ([Raspberry Pi configuration docs](https://www.raspberrypi.com/documentation/computers/configuration.html)).
 - **No Globe page** (Emmanuel's decision, 2026-10-27: barely used). It held Google's 3D Earth, air quality and local news, and it was the only page that drew 3D graphics (WebGL). The Google browser key went with it. Its saved pins are in git history and in the SD card backup.
+- **Weather line on Home** (Emmanuel's decision, 2026-10-27; source: his Google key, 2026-10-28). It reuses the globe's Google Weather code, which ran on the fridge. Placed in the top bar left of the status icons, Home page only (decided by Claude; to move it, change `position` of MMM-HomeWeather in `config.js`). Google's [Weather API policies](https://developers.google.com/maps/documentation/weather/policies) ask for the credit "Source: Includes weather data from Google" next to the data, so it sits under the line in small type. Remove the module from `config.js`, or `SECRET_GOOGLE_MAPS_KEY` from `config.env`, to turn it off.
+- **Back to Home when idle** (decided by Claude, 2026-10-28). The unfinished rule in MMM-TouchNav is now: 5 minutes untouched on any other page, 15 with the keyboard or a popup open, never during a cast. Before, a page such as the globe could stay up for days. Change `idleReturnMs` / `idleBusyMs` in MMM-TouchNav's config.
 - **Recovering from freezes** (decided by Claude, 2026-10-26, after the Pi froze for over a day). Each layer catches a different failure; each is undone by removing one file.
   - *Hung kernel or system:* the Pi 4's hardware watchdog reboots it after 15 s without a response. Off by default in systemd ([systemd-system.conf](https://www.freedesktop.org/software/systemd/man/257/systemd-system.conf.html), `RuntimeWatchdogSec=`); 15 s is inside the Pi 4 watchdog's limit of about 16 s ([bcm2835_wdt.c](https://github.com/raspberrypi/linux/blob/rpi-6.12.y/drivers/watchdog/bcm2835_wdt.c)). File: `/etc/systemd/system.conf.d/90-mm-fridge-watchdog.conf`.
   - *Crashed, killed or hung screen while the Pi still runs:* MagicMirror 2.38 has no handler for this ([js/electron.js](https://github.com/MagicMirrorOrg/MagicMirror/blob/v2.38.0/js/electron.js)), so `MMM-Guard` exits on Electron's `render-process-gone`, a GPU `child-process-gone`, or 60 s of `unresponsive` ([Electron webContents](https://www.electronjs.org/docs/latest/api/web-contents), [app](https://www.electronjs.org/docs/latest/api/app)), and systemd restarts MagicMirror. Remove `{ module: "MMM-Guard" }` from `config.js` to undo.
@@ -280,6 +294,7 @@ MagicMirror² provides the page framework. This project adds a config, a theme, 
 | Back up before re-imaging the card | `scripts/save-pi-data.sh` copies keys and saved data off the SD card on a Mac, read-only; `scripts/restore-pi-data.sh` puts them back after a fresh install. See [Replacing the SD card](#replacing-the-sd-card). |
 | Strip at the bottom: "SD card errors" | The card is failing. Replace it soon: [Replacing the SD card](#replacing-the-sd-card). |
 | Strip at the bottom: "Power too weak" | Under-voltage happened since the last start. Use the Raspberry Pi 5.1 V 3 A supply and power the monitor separately ([Wiring and power](#wiring-and-power)), then reboot. |
+| No weather line, or "Weather unavailable" | Check `SECRET_GOOGLE_MAPS_KEY`, `HOME_LAT` and `HOME_LNG` in `config.env`, then `journalctl --user -u magicmirror -b \| grep HomeWeather` (it says when the Weather API is not enabled on the key or the quota is used up). |
 
 ---
 

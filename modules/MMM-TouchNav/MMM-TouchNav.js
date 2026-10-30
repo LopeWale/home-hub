@@ -7,7 +7,7 @@
  *     calendar, where a swipe changes the month)
  *   - closes open MMM-MyGCalendar modals when the page changes
  *     (they live on document.body and would otherwise float over the next page)
- *   - optional return to the home page after the fridge has been left alone
+ *   - returns to the home page after 5 minutes untouched (not while casting)
  *
  * Sends: PAGE_SELECT, PAGE_INCREMENT, PAGE_DECREMENT (swipe)
  * Listens: NEW_PAGE, MAX_PAGES_CHANGED, YOUTUBE_CAST_STARTED / _STOPPED (MMM-YouTubeCast)
@@ -18,6 +18,8 @@ Module.register("MMM-TouchNav", {
 		homePage: 0,
 		castPage: 1,
 		idleCheckMs: 15 * 1000, // how often shouldReturnHome() is asked
+		idleReturnMs: 5 * 60 * 1000, // untouched this long on another page: back to Home
+		idleBusyMs: 15 * 60 * 1000, // the same while the keyboard or a popup is open
 		swipe: true,
 		swipeMinDistance: 120, // px of horizontal travel
 		swipeMaxOffAxis: 80, // px of vertical drift allowed
@@ -52,8 +54,12 @@ Module.register("MMM-TouchNav", {
 	 * @returns {boolean}
 	 */
 	shouldReturnHome (ctx) {
-		// TODO(human): decide when the fridge should go back to the home page.
-		return false;
+		// Home is the calendar and lists, what the fridge is for. A cast that is
+		// playing is never cut off; MMM-YouTubeCast returns home when it stops.
+		if (ctx.page === ctx.homePage || ctx.casting) return false;
+		// Someone typing or reading a popup gets longer before the page changes.
+		const limit = ctx.keyboardOpen || ctx.popupOpen ? this.config.idleBusyMs : this.config.idleReturnMs;
+		return ctx.idleMs >= limit;
 	},
 
 	checkIdle () {

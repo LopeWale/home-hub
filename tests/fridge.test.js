@@ -1,5 +1,6 @@
 /* Unit tests for the guest Wi-Fi QR string, the bridge migration, Bluetooth
- * parsing, the sports team picker and game panel and the todo tabs (no network).
+ * parsing, the sports team picker and game panel, the todo tabs and the weather
+ * line (no network).
  * Run: node --test tests/fridge.test.js */
 "use strict";
 
@@ -160,4 +161,34 @@ test("todo tabs: a tab renamed in place carries its tasks (code taken from the s
 	assert.equal(tasks.Ada[0].text, "Call mom");
 	assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, "members.json"), "utf-8")), ["Shopping", "Ada", "Me"]);
 	fs.rmSync(dir, { recursive: true, force: true });
+});
+
+const w = require("../modules/MMM-HomeWeather/weather");
+
+test("weather line: parseCurrent reads Google current conditions", () => {
+	const c = w.parseCurrent({
+		isDaytime: true,
+		weatherCondition: { iconBaseUri: "https://maps.gstatic.com/weather/v1/sunny", description: { text: "Sunny", languageCode: "en" }, type: "CLEAR" },
+		temperature: { degrees: 56.6, unit: "FAHRENHEIT" }
+	});
+	assert.deepEqual(c, { temp: 57, unit: "°F", text: "Sunny", icon: "https://maps.gstatic.com/weather/v1/sunny.svg", isDay: true });
+	assert.deepEqual(w.parseCurrent({}), { temp: null, unit: "°", text: "", icon: null, isDay: true });
+});
+
+test("weather line: parseDays reads today's high and low", () => {
+	const days = w.parseDays({ forecastDays: [{
+		displayDate: { year: 2026, month: 10, day: 28 },
+		daytimeForecast: { weatherCondition: { type: "PARTLY_CLOUDY", description: { text: "Partly sunny" } } },
+		maxTemperature: { degrees: 38.2, unit: "FAHRENHEIT" },
+		minTemperature: { degrees: 15.1, unit: "FAHRENHEIT" }
+	}] });
+	assert.deepEqual(days, [{ date: { y: 2026, m: 10, d: 28 }, high: 38, low: 15, icon: null, text: "Partly sunny" }]);
+	assert.deepEqual(w.parseDays({}), []);
+});
+
+test("weather line: Google errors become plain sentences without the key", () => {
+	assert.match(w.googleError("Weather API", 403, { error: { message: "Weather API has not been used in project 1 before or it is disabled.", status: "PERMISSION_DENIED" } }), /not enabled for this Google key/);
+	assert.match(w.googleError("Weather API", 400, { error: { message: "API key not valid. Please pass a valid API key." } }), /not valid/);
+	assert.match(w.googleError("Weather API", 429, null), /quota/);
+	assert.match(w.googleError("Weather API", 500, null), /HTTP 500/);
 });

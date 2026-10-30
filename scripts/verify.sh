@@ -62,6 +62,7 @@ if curl -fsS -o /dev/null "$MM_URL/"; then
 	for m in MMM-pages MMM-MyGCalendar MMM-TodoList MMM-SplitLayout MMM-GuestNet; do
 		grep -q "\"$m\"" <<<"$cfg" && pass "config contains $m" || fail "config missing $m"
 	done
+	grep -q '"MMM-HomeWeather"' <<<"$cfg" && pass "weather line on" || warn "no weather line (set SECRET_GOOGLE_MAPS_KEY, HOME_LAT and HOME_LNG in config.env)"
 	code="$(curl -s -o /dev/null -w '%{http_code}' "$MM_URL/config/config.env")"
 	[ "$code" = "404" ] && pass "config.env not served (HTTP 404)" || fail "config.env served with HTTP $code"
 	# No SECRET_ value from config.env may appear in what the browser receives.

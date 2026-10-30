@@ -1,0 +1,17 @@
+diff --git a/MMM-pages.js b/MMM-pages.js
+index 2f9dab5..9239a75 100644
+--- a/MMM-pages.js
++++ b/MMM-pages.js
+@@ -284,7 +284,11 @@ Module.register('MMM-pages', {
+       .enumerate(module => module.hide(animationTime, () => {}, lockStringObj));
+ 
+     // Shows all modules meant to be on the current page, after a small delay.
+-    setTimeout(() => {
++    // [mm-fridge patch] Only the latest page change may show modules. A show
++    // still pending from an earlier change (two changes within animationTime/2)
++    // would lift that page's lock and leave two pages on screen at once.
++    clearTimeout(this.showTimer);
++    this.showTimer = setTimeout(() => {
+       MM.getModules()
+         .withClass(modulesToShow)
+         .enumerate((module) => {

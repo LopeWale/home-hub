@@ -8,7 +8,8 @@
  *   literals here, and put every key, iCal URL and password in config.env.
  * - Values editable from the Tailscale admin page live in
  *   config/config.bridge.json and are merged at the bottom of this file.
- * - Page content modules all sit in fullscreen_below (see custom.css).
+ * - Page content modules sit in fullscreen_below (see custom.css), except the
+ *   weather line, which is in the top bar on the Home page.
  */
 
 // Optional features. Flip to true once the hardware or service exists.
@@ -29,6 +30,11 @@ const calendars = [
 	// Public feed, not a secret.
 	{ name: "US Holidays", url: "https://calendar.google.com/calendar/ical/en.usa%23holiday%40group.v.calendar.google.com/public/basic.ics", color: "#0B8043" }
 ].filter(Boolean);
+
+// Weather line (MMM-HomeWeather, README "Weather"): needs SECRET_GOOGLE_MAPS_KEY,
+// HOME_LAT and HOME_LNG in config.env. The Pi reads them itself, so neither the
+// key nor the location reaches the browser. Without them there is no weather line.
+const hasWeather = Boolean(process.env.SECRET_GOOGLE_MAPS_KEY && process.env.HOME_LAT && process.env.HOME_LNG);
 
 let config = {
 	address: "localhost", // Electron runs on the Pi itself; nothing else needs port 8080
@@ -69,7 +75,7 @@ let config = {
 			config: {
 				modules: [
 					// Entries are module names or classes; the two dividers are told apart by class.
-					["MMM-MyGCalendar", "split-home", "MMM-TodoList"], // 0 Home
+					["MMM-MyGCalendar", "split-home", "MMM-TodoList", "MMM-HomeWeather"], // 0 Home
 					["MMM-YouTubeCast"], // 1 Cast
 					["MMM-MyScoreboard", "split-sports", "MMM-GameDetails"] // 2 Sports
 				],
@@ -99,6 +105,8 @@ let config = {
 			position: "top_center",
 			config: { activeBright: true, inactiveDimmed: true, inactiveHollow: true, showPageNumberOnHover: false }
 		},
+		// Weather line, left of the status icons (Home page only, see MMM-pages above).
+		hasWeather ? { module: "MMM-HomeWeather", position: "top_right" } : null,
 		{
 			// Bluetooth icon, left of the network icon. Tap it to pair or connect a
 			// speaker; while one is connected all sound (casts too) plays there.
